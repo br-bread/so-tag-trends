@@ -56,18 +56,16 @@
 - `tag` — тег.
 - `question_count` — количество вопросов/строк за день для тега.
 
-### Как запустить (Windows PowerShell)
-
-Из корня проекта:
-
 ### Запуск (Windows PowerShell)
 
-```py -m venv .venv
+```
+py -m venv .venv
 ..venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 python .\scripts\parse_questions.py
 python .\scripts\parse_users.py
-python .\scripts\build_days.py```
+python .\scripts\build_days.py
+```
 
 
 # Настройка среды для запуска
@@ -79,10 +77,11 @@ python .\scripts\build_days.py```
 ### 1) Создай виртуальное окружение и установи зависимости
 
 **Windows (PowerShell):**
-```py -m venv .venv
+```
+py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-undefined```
+```
 
 > Если PowerShell блокирует активацию, можно временно разрешить скрипты:
 > Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
