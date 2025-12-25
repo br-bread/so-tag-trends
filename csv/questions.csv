@@ -1,0 +1,4109 @@
+id,user_id,tag,title,body,upvotes,downvotes,created_at,answers_count,is_answered
+76922245,483341,sql,SQL less/greater comparison between booleans produces unexpected results,"<p>Why do most(all?) SQL Databases give:</p>
+<pre><code>SELECT FALSE &lt; FALSE;      -- FALSE / 0   Ok
+SELECT TRUE &lt; FALSE;       -- FALSE / 0   Ok
+
+SELECT NOT(FALSE) &lt; FALSE; -- TRUE / 1    What?
+SELECT NOT(TRUE) &lt; FALSE;  -- TRUE / 1    What??
+</code></pre>
+<p>And just do double check:</p>
+<pre><code>SELECT NOT(TRUE) = FALSE;  -- TRUE / 1    Ok
+SELECT NOT(FALSE) = TRUE;  -- TRUE / 1    Ok
+</code></pre>
+<p>In Postgres, I can also check:</p>
+<pre><code>SELECT pg_typeof(TRUE), pg_typeof(NOT(FALSE));
+  -- boolean | boolean
+</code></pre>
+<p>I've tried this with PostgreSQL, SQLite3 and MariaDB, and all agree on the same unexpected result.<br />
+<strong>What am I missing?</strong></p>
+",,,2023-08-17T13:59:45+00:00,3,True
+76922245,483341,mysql,SQL less/greater comparison between booleans produces unexpected results,"<p>Why do most(all?) SQL Databases give:</p>
+<pre><code>SELECT FALSE &lt; FALSE;      -- FALSE / 0   Ok
+SELECT TRUE &lt; FALSE;       -- FALSE / 0   Ok
+
+SELECT NOT(FALSE) &lt; FALSE; -- TRUE / 1    What?
+SELECT NOT(TRUE) &lt; FALSE;  -- TRUE / 1    What??
+</code></pre>
+<p>And just do double check:</p>
+<pre><code>SELECT NOT(TRUE) = FALSE;  -- TRUE / 1    Ok
+SELECT NOT(FALSE) = TRUE;  -- TRUE / 1    Ok
+</code></pre>
+<p>In Postgres, I can also check:</p>
+<pre><code>SELECT pg_typeof(TRUE), pg_typeof(NOT(FALSE));
+  -- boolean | boolean
+</code></pre>
+<p>I've tried this with PostgreSQL, SQLite3 and MariaDB, and all agree on the same unexpected result.<br />
+<strong>What am I missing?</strong></p>
+",,,2023-08-17T13:59:45+00:00,3,True
+76922245,483341,postgresql,SQL less/greater comparison between booleans produces unexpected results,"<p>Why do most(all?) SQL Databases give:</p>
+<pre><code>SELECT FALSE &lt; FALSE;      -- FALSE / 0   Ok
+SELECT TRUE &lt; FALSE;       -- FALSE / 0   Ok
+
+SELECT NOT(FALSE) &lt; FALSE; -- TRUE / 1    What?
+SELECT NOT(TRUE) &lt; FALSE;  -- TRUE / 1    What??
+</code></pre>
+<p>And just do double check:</p>
+<pre><code>SELECT NOT(TRUE) = FALSE;  -- TRUE / 1    Ok
+SELECT NOT(FALSE) = TRUE;  -- TRUE / 1    Ok
+</code></pre>
+<p>In Postgres, I can also check:</p>
+<pre><code>SELECT pg_typeof(TRUE), pg_typeof(NOT(FALSE));
+  -- boolean | boolean
+</code></pre>
+<p>I've tried this with PostgreSQL, SQLite3 and MariaDB, and all agree on the same unexpected result.<br />
+<strong>What am I missing?</strong></p>
+",,,2023-08-17T13:59:45+00:00,3,True
+76922245,483341,sqlite,SQL less/greater comparison between booleans produces unexpected results,"<p>Why do most(all?) SQL Databases give:</p>
+<pre><code>SELECT FALSE &lt; FALSE;      -- FALSE / 0   Ok
+SELECT TRUE &lt; FALSE;       -- FALSE / 0   Ok
+
+SELECT NOT(FALSE) &lt; FALSE; -- TRUE / 1    What?
+SELECT NOT(TRUE) &lt; FALSE;  -- TRUE / 1    What??
+</code></pre>
+<p>And just do double check:</p>
+<pre><code>SELECT NOT(TRUE) = FALSE;  -- TRUE / 1    Ok
+SELECT NOT(FALSE) = TRUE;  -- TRUE / 1    Ok
+</code></pre>
+<p>In Postgres, I can also check:</p>
+<pre><code>SELECT pg_typeof(TRUE), pg_typeof(NOT(FALSE));
+  -- boolean | boolean
+</code></pre>
+<p>I've tried this with PostgreSQL, SQLite3 and MariaDB, and all agree on the same unexpected result.<br />
+<strong>What am I missing?</strong></p>
+",,,2023-08-17T13:59:45+00:00,3,True
+73548465,991710,mysql,Exists on a distinct column selection does not work as expected when offset is provided,"<p>Given the following table definition:</p>
+<pre class=""lang-sql prettyprint-override""><code>CREATE TABLE demo (
+   id integer PRIMARY KEY,
+   name varchar(10)
+);
+
+INSERT INTO demo VALUES (1, 'test');
+INSERT INTO demo VALUES (2, 'test');
+</code></pre>
+<p>The following queries (which are assumed to be semantically identical - please correct me if I'm wrong):</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT DISTINCT name
+FROM demo
+WHERE name = 'test';
+
+SELECT DISTINCT name
+FROM demo
+WHERE name = 'test'
+-- actual value is irrelevant as long
+-- as it is &gt; number of entries that would result
+LIMIT 10
+OFFSET 0;
+</code></pre>
+<p>Both correctly return:</p>
+<pre class=""lang-sql prettyprint-override""><code>name
+----
+test
+</code></pre>
+<p>In addition, the query:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT EXISTS(
+    SELECT DISTINCT name
+    FROM demo
+    WHERE name = 'test'
+    LIMIT 10
+    OFFSET 0
+);
+</code></pre>
+<p>also correctly returns <code>1</code> (or <code>t</code> in PostgreSQL). <em>However</em>, the query:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT EXISTS(
+    SELECT DISTINCT name
+    FROM demo
+    WHERE name = 'test'
+    LIMIT 10
+    OFFSET 1 -- note the offset: 1 more than what the DISTINCTed query should return
+);
+</code></pre>
+<p><em>also</em> returns <code>1</code> in SQLite and MySQL, but <code>f</code> in PostgreSQL. It seems as if the <code>OFFSET</code> is applied to the query result in PostgreSQL (as expected), but the <code>DISTINCT</code> has precedence in SQLite and MySQL.</p>
+<p>AFAIK, the SQL standard defines <code>LIMIT/OFFSET</code> to be evaluated last (though I couldn't actually <em>find</em> a link to the standard to verify this myself, though every search turns up the same...), meaning that the PostgreSQL behaviour is correct.</p>
+<p>Is this a bug that has been fixed in PostgreSQL?</p>
+<p>Tested on:</p>
+<ul>
+<li>SQLite 3.36.0</li>
+<li>MySQL 8.0.28-0ubuntu0.20.04.3</li>
+<li>PostgreSQL 14.2 (Debian 14.2-1.pgdg110+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 10.2.1-6) 10.2.1 20210110, 64-bit</li>
+</ul>
+<p>Interestingly, using <code>GROUP BY</code> instead of <code>DISTINCT</code> like follows:</p>
+<pre><code>SELECT EXISTS(
+    SELECT name
+    FROM demo
+    WHERE name = 'test'
+    GROUP BY name
+    LIMIT 10
+    OFFSET 1
+);
+</code></pre>
+<p>correctly returns <code>0</code> on SQLite, but it still returns an incorrect result of <code>1</code> on MySQL.</p>
+",,,2022-08-30T21:06:52+00:00,1,True
+73548465,991710,sql,Exists on a distinct column selection does not work as expected when offset is provided,"<p>Given the following table definition:</p>
+<pre class=""lang-sql prettyprint-override""><code>CREATE TABLE demo (
+   id integer PRIMARY KEY,
+   name varchar(10)
+);
+
+INSERT INTO demo VALUES (1, 'test');
+INSERT INTO demo VALUES (2, 'test');
+</code></pre>
+<p>The following queries (which are assumed to be semantically identical - please correct me if I'm wrong):</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT DISTINCT name
+FROM demo
+WHERE name = 'test';
+
+SELECT DISTINCT name
+FROM demo
+WHERE name = 'test'
+-- actual value is irrelevant as long
+-- as it is &gt; number of entries that would result
+LIMIT 10
+OFFSET 0;
+</code></pre>
+<p>Both correctly return:</p>
+<pre class=""lang-sql prettyprint-override""><code>name
+----
+test
+</code></pre>
+<p>In addition, the query:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT EXISTS(
+    SELECT DISTINCT name
+    FROM demo
+    WHERE name = 'test'
+    LIMIT 10
+    OFFSET 0
+);
+</code></pre>
+<p>also correctly returns <code>1</code> (or <code>t</code> in PostgreSQL). <em>However</em>, the query:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT EXISTS(
+    SELECT DISTINCT name
+    FROM demo
+    WHERE name = 'test'
+    LIMIT 10
+    OFFSET 1 -- note the offset: 1 more than what the DISTINCTed query should return
+);
+</code></pre>
+<p><em>also</em> returns <code>1</code> in SQLite and MySQL, but <code>f</code> in PostgreSQL. It seems as if the <code>OFFSET</code> is applied to the query result in PostgreSQL (as expected), but the <code>DISTINCT</code> has precedence in SQLite and MySQL.</p>
+<p>AFAIK, the SQL standard defines <code>LIMIT/OFFSET</code> to be evaluated last (though I couldn't actually <em>find</em> a link to the standard to verify this myself, though every search turns up the same...), meaning that the PostgreSQL behaviour is correct.</p>
+<p>Is this a bug that has been fixed in PostgreSQL?</p>
+<p>Tested on:</p>
+<ul>
+<li>SQLite 3.36.0</li>
+<li>MySQL 8.0.28-0ubuntu0.20.04.3</li>
+<li>PostgreSQL 14.2 (Debian 14.2-1.pgdg110+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 10.2.1-6) 10.2.1 20210110, 64-bit</li>
+</ul>
+<p>Interestingly, using <code>GROUP BY</code> instead of <code>DISTINCT</code> like follows:</p>
+<pre><code>SELECT EXISTS(
+    SELECT name
+    FROM demo
+    WHERE name = 'test'
+    GROUP BY name
+    LIMIT 10
+    OFFSET 1
+);
+</code></pre>
+<p>correctly returns <code>0</code> on SQLite, but it still returns an incorrect result of <code>1</code> on MySQL.</p>
+",,,2022-08-30T21:06:52+00:00,1,True
+73548465,991710,postgresql,Exists on a distinct column selection does not work as expected when offset is provided,"<p>Given the following table definition:</p>
+<pre class=""lang-sql prettyprint-override""><code>CREATE TABLE demo (
+   id integer PRIMARY KEY,
+   name varchar(10)
+);
+
+INSERT INTO demo VALUES (1, 'test');
+INSERT INTO demo VALUES (2, 'test');
+</code></pre>
+<p>The following queries (which are assumed to be semantically identical - please correct me if I'm wrong):</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT DISTINCT name
+FROM demo
+WHERE name = 'test';
+
+SELECT DISTINCT name
+FROM demo
+WHERE name = 'test'
+-- actual value is irrelevant as long
+-- as it is &gt; number of entries that would result
+LIMIT 10
+OFFSET 0;
+</code></pre>
+<p>Both correctly return:</p>
+<pre class=""lang-sql prettyprint-override""><code>name
+----
+test
+</code></pre>
+<p>In addition, the query:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT EXISTS(
+    SELECT DISTINCT name
+    FROM demo
+    WHERE name = 'test'
+    LIMIT 10
+    OFFSET 0
+);
+</code></pre>
+<p>also correctly returns <code>1</code> (or <code>t</code> in PostgreSQL). <em>However</em>, the query:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT EXISTS(
+    SELECT DISTINCT name
+    FROM demo
+    WHERE name = 'test'
+    LIMIT 10
+    OFFSET 1 -- note the offset: 1 more than what the DISTINCTed query should return
+);
+</code></pre>
+<p><em>also</em> returns <code>1</code> in SQLite and MySQL, but <code>f</code> in PostgreSQL. It seems as if the <code>OFFSET</code> is applied to the query result in PostgreSQL (as expected), but the <code>DISTINCT</code> has precedence in SQLite and MySQL.</p>
+<p>AFAIK, the SQL standard defines <code>LIMIT/OFFSET</code> to be evaluated last (though I couldn't actually <em>find</em> a link to the standard to verify this myself, though every search turns up the same...), meaning that the PostgreSQL behaviour is correct.</p>
+<p>Is this a bug that has been fixed in PostgreSQL?</p>
+<p>Tested on:</p>
+<ul>
+<li>SQLite 3.36.0</li>
+<li>MySQL 8.0.28-0ubuntu0.20.04.3</li>
+<li>PostgreSQL 14.2 (Debian 14.2-1.pgdg110+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 10.2.1-6) 10.2.1 20210110, 64-bit</li>
+</ul>
+<p>Interestingly, using <code>GROUP BY</code> instead of <code>DISTINCT</code> like follows:</p>
+<pre><code>SELECT EXISTS(
+    SELECT name
+    FROM demo
+    WHERE name = 'test'
+    GROUP BY name
+    LIMIT 10
+    OFFSET 1
+);
+</code></pre>
+<p>correctly returns <code>0</code> on SQLite, but it still returns an incorrect result of <code>1</code> on MySQL.</p>
+",,,2022-08-30T21:06:52+00:00,1,True
+73548465,991710,sqlite,Exists on a distinct column selection does not work as expected when offset is provided,"<p>Given the following table definition:</p>
+<pre class=""lang-sql prettyprint-override""><code>CREATE TABLE demo (
+   id integer PRIMARY KEY,
+   name varchar(10)
+);
+
+INSERT INTO demo VALUES (1, 'test');
+INSERT INTO demo VALUES (2, 'test');
+</code></pre>
+<p>The following queries (which are assumed to be semantically identical - please correct me if I'm wrong):</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT DISTINCT name
+FROM demo
+WHERE name = 'test';
+
+SELECT DISTINCT name
+FROM demo
+WHERE name = 'test'
+-- actual value is irrelevant as long
+-- as it is &gt; number of entries that would result
+LIMIT 10
+OFFSET 0;
+</code></pre>
+<p>Both correctly return:</p>
+<pre class=""lang-sql prettyprint-override""><code>name
+----
+test
+</code></pre>
+<p>In addition, the query:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT EXISTS(
+    SELECT DISTINCT name
+    FROM demo
+    WHERE name = 'test'
+    LIMIT 10
+    OFFSET 0
+);
+</code></pre>
+<p>also correctly returns <code>1</code> (or <code>t</code> in PostgreSQL). <em>However</em>, the query:</p>
+<pre class=""lang-sql prettyprint-override""><code>SELECT EXISTS(
+    SELECT DISTINCT name
+    FROM demo
+    WHERE name = 'test'
+    LIMIT 10
+    OFFSET 1 -- note the offset: 1 more than what the DISTINCTed query should return
+);
+</code></pre>
+<p><em>also</em> returns <code>1</code> in SQLite and MySQL, but <code>f</code> in PostgreSQL. It seems as if the <code>OFFSET</code> is applied to the query result in PostgreSQL (as expected), but the <code>DISTINCT</code> has precedence in SQLite and MySQL.</p>
+<p>AFAIK, the SQL standard defines <code>LIMIT/OFFSET</code> to be evaluated last (though I couldn't actually <em>find</em> a link to the standard to verify this myself, though every search turns up the same...), meaning that the PostgreSQL behaviour is correct.</p>
+<p>Is this a bug that has been fixed in PostgreSQL?</p>
+<p>Tested on:</p>
+<ul>
+<li>SQLite 3.36.0</li>
+<li>MySQL 8.0.28-0ubuntu0.20.04.3</li>
+<li>PostgreSQL 14.2 (Debian 14.2-1.pgdg110+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 10.2.1-6) 10.2.1 20210110, 64-bit</li>
+</ul>
+<p>Interestingly, using <code>GROUP BY</code> instead of <code>DISTINCT</code> like follows:</p>
+<pre><code>SELECT EXISTS(
+    SELECT name
+    FROM demo
+    WHERE name = 'test'
+    GROUP BY name
+    LIMIT 10
+    OFFSET 1
+);
+</code></pre>
+<p>correctly returns <code>0</code> on SQLite, but it still returns an incorrect result of <code>1</code> on MySQL.</p>
+",,,2022-08-30T21:06:52+00:00,1,True
+67115768,7442677,mysql,Get tables name with the same query in Postgres-MySql-SQLite,"<p>i'm working on a school project and i'm building a little server in NodeJS for our project, one of my tasks is to find a way to get the tables name of all &quot;user&quot;tables in the selected Database.
+Since i need to connect to different SQL databases, MySQL - PostgreSQL - SQLite, i was looking to get the same result by exectuing the same query, i'll explain my self.
+I've start working on MySQL and i've &quot;found&quot; this query:</p>
+<pre><code>`SELECT table_name FROM information_schema.tables WHERE table_schema ='${config.DB_Name}'`
+</code></pre>
+<p>And it correctly return all the table name from the selected database. After that i moved to work with PostgreSQL and that query (succesfully run) returns 0 result.
+So i've start looking for another query that can return the same result in Postgres, and i found this:</p>
+<pre><code>    SELECT table_name
+  FROM information_schema.tables
+ WHERE table_schema='public'
+   AND table_type='BASE TABLE';
+</code></pre>
+<p>I was wondering, is there any Query which, run on MySQL-PostgreSQL-SQLite, give me the same kind of result?</p>
+",,,2021-04-15T20:40:53+00:00,1,False
+67115768,7442677,sql,Get tables name with the same query in Postgres-MySql-SQLite,"<p>i'm working on a school project and i'm building a little server in NodeJS for our project, one of my tasks is to find a way to get the tables name of all &quot;user&quot;tables in the selected Database.
+Since i need to connect to different SQL databases, MySQL - PostgreSQL - SQLite, i was looking to get the same result by exectuing the same query, i'll explain my self.
+I've start working on MySQL and i've &quot;found&quot; this query:</p>
+<pre><code>`SELECT table_name FROM information_schema.tables WHERE table_schema ='${config.DB_Name}'`
+</code></pre>
+<p>And it correctly return all the table name from the selected database. After that i moved to work with PostgreSQL and that query (succesfully run) returns 0 result.
+So i've start looking for another query that can return the same result in Postgres, and i found this:</p>
+<pre><code>    SELECT table_name
+  FROM information_schema.tables
+ WHERE table_schema='public'
+   AND table_type='BASE TABLE';
+</code></pre>
+<p>I was wondering, is there any Query which, run on MySQL-PostgreSQL-SQLite, give me the same kind of result?</p>
+",,,2021-04-15T20:40:53+00:00,1,False
+67115768,7442677,postgresql,Get tables name with the same query in Postgres-MySql-SQLite,"<p>i'm working on a school project and i'm building a little server in NodeJS for our project, one of my tasks is to find a way to get the tables name of all &quot;user&quot;tables in the selected Database.
+Since i need to connect to different SQL databases, MySQL - PostgreSQL - SQLite, i was looking to get the same result by exectuing the same query, i'll explain my self.
+I've start working on MySQL and i've &quot;found&quot; this query:</p>
+<pre><code>`SELECT table_name FROM information_schema.tables WHERE table_schema ='${config.DB_Name}'`
+</code></pre>
+<p>And it correctly return all the table name from the selected database. After that i moved to work with PostgreSQL and that query (succesfully run) returns 0 result.
+So i've start looking for another query that can return the same result in Postgres, and i found this:</p>
+<pre><code>    SELECT table_name
+  FROM information_schema.tables
+ WHERE table_schema='public'
+   AND table_type='BASE TABLE';
+</code></pre>
+<p>I was wondering, is there any Query which, run on MySQL-PostgreSQL-SQLite, give me the same kind of result?</p>
+",,,2021-04-15T20:40:53+00:00,1,False
+67115768,7442677,sqlite,Get tables name with the same query in Postgres-MySql-SQLite,"<p>i'm working on a school project and i'm building a little server in NodeJS for our project, one of my tasks is to find a way to get the tables name of all &quot;user&quot;tables in the selected Database.
+Since i need to connect to different SQL databases, MySQL - PostgreSQL - SQLite, i was looking to get the same result by exectuing the same query, i'll explain my self.
+I've start working on MySQL and i've &quot;found&quot; this query:</p>
+<pre><code>`SELECT table_name FROM information_schema.tables WHERE table_schema ='${config.DB_Name}'`
+</code></pre>
+<p>And it correctly return all the table name from the selected database. After that i moved to work with PostgreSQL and that query (succesfully run) returns 0 result.
+So i've start looking for another query that can return the same result in Postgres, and i found this:</p>
+<pre><code>    SELECT table_name
+  FROM information_schema.tables
+ WHERE table_schema='public'
+   AND table_type='BASE TABLE';
+</code></pre>
+<p>I was wondering, is there any Query which, run on MySQL-PostgreSQL-SQLite, give me the same kind of result?</p>
+",,,2021-04-15T20:40:53+00:00,1,False
+65245317,13835451,mysql,"In SQL, is it true that the shorter the query, the faster it run","<p>I'm very curious to know because when I run these two query in MySQL the shorter run faster</p>
+<pre><code>SELECT FirstName, LastName, City, State 
+FROM Person
+LEFT JOIN Address ON Person.PersonId = Address.PersonId;
+</code></pre>
+<p>and</p>
+<pre><code>SELECT FirstName, LastName, City, State 
+FROM Person
+LEFT OUTER JOIN Address ON Person.PersonId = Address.PersonId;
+</code></pre>
+<p>In addition, I want to ask if the same thing happen in the other RDBMS such as Posrgres, MS SQL Server, Oracle and SQLite?</p>
+",,,2020-12-11T03:15:27+00:00,3,False
+65245317,13835451,sql,"In SQL, is it true that the shorter the query, the faster it run","<p>I'm very curious to know because when I run these two query in MySQL the shorter run faster</p>
+<pre><code>SELECT FirstName, LastName, City, State 
+FROM Person
+LEFT JOIN Address ON Person.PersonId = Address.PersonId;
+</code></pre>
+<p>and</p>
+<pre><code>SELECT FirstName, LastName, City, State 
+FROM Person
+LEFT OUTER JOIN Address ON Person.PersonId = Address.PersonId;
+</code></pre>
+<p>In addition, I want to ask if the same thing happen in the other RDBMS such as Posrgres, MS SQL Server, Oracle and SQLite?</p>
+",,,2020-12-11T03:15:27+00:00,3,False
+65245317,13835451,postgresql,"In SQL, is it true that the shorter the query, the faster it run","<p>I'm very curious to know because when I run these two query in MySQL the shorter run faster</p>
+<pre><code>SELECT FirstName, LastName, City, State 
+FROM Person
+LEFT JOIN Address ON Person.PersonId = Address.PersonId;
+</code></pre>
+<p>and</p>
+<pre><code>SELECT FirstName, LastName, City, State 
+FROM Person
+LEFT OUTER JOIN Address ON Person.PersonId = Address.PersonId;
+</code></pre>
+<p>In addition, I want to ask if the same thing happen in the other RDBMS such as Posrgres, MS SQL Server, Oracle and SQLite?</p>
+",,,2020-12-11T03:15:27+00:00,3,False
+65245317,13835451,sqlite,"In SQL, is it true that the shorter the query, the faster it run","<p>I'm very curious to know because when I run these two query in MySQL the shorter run faster</p>
+<pre><code>SELECT FirstName, LastName, City, State 
+FROM Person
+LEFT JOIN Address ON Person.PersonId = Address.PersonId;
+</code></pre>
+<p>and</p>
+<pre><code>SELECT FirstName, LastName, City, State 
+FROM Person
+LEFT OUTER JOIN Address ON Person.PersonId = Address.PersonId;
+</code></pre>
+<p>In addition, I want to ask if the same thing happen in the other RDBMS such as Posrgres, MS SQL Server, Oracle and SQLite?</p>
+",,,2020-12-11T03:15:27+00:00,3,False
+60842505,10699888,mysql,&quot;Intermediate Consistency&quot; transaction fail,"<p>Hi all PostgreSQL / MySQL / SQLite experts and thanks in advance for your thoughts.</p>
+
+<p>Consider the following script:</p>
+
+<pre><code>CREATE TABLE T (Col1 INT PRIMARY KEY);
+
+INSERT INTO T VALUES (1), (2);
+
+UPDATE T SET Col1 = Col1 + 1;
+</code></pre>
+
+<p>Executing it in either PostgreSQL, MySQL, or SQLite results in a primary key violation error.</p>
+
+<p>However, the following code succeeds:</p>
+
+<pre><code>CREATE TABLE T (Col1 INT PRIMARY KEY);
+
+INSERT INTO T VALUES (1), (2);
+
+UPDATE T SET Col1 = Col1 - 1;
+</code></pre>
+
+<p>Oracle and SQL Server behave as expected, and the same (equivalent for Oracle) scripts succeed and commit with no errors as they should IMHO.</p>
+
+<p>It seems that the success or failure of the transaction for PostgreSQL, MySQL, and SQLite depend on some physical update order, and constraints are checked per row, before the update completes.
+This violates the fundamental ""All at once"" principle as I understand it.</p>
+
+<p>This doesn't make any sense to me. What am I missing?</p>
+
+<p>Stay safe and healthy!</p>
+",,,2020-03-25T03:13:29+00:00,2,True
+60842505,10699888,sql,&quot;Intermediate Consistency&quot; transaction fail,"<p>Hi all PostgreSQL / MySQL / SQLite experts and thanks in advance for your thoughts.</p>
+
+<p>Consider the following script:</p>
+
+<pre><code>CREATE TABLE T (Col1 INT PRIMARY KEY);
+
+INSERT INTO T VALUES (1), (2);
+
+UPDATE T SET Col1 = Col1 + 1;
+</code></pre>
+
+<p>Executing it in either PostgreSQL, MySQL, or SQLite results in a primary key violation error.</p>
+
+<p>However, the following code succeeds:</p>
+
+<pre><code>CREATE TABLE T (Col1 INT PRIMARY KEY);
+
+INSERT INTO T VALUES (1), (2);
+
+UPDATE T SET Col1 = Col1 - 1;
+</code></pre>
+
+<p>Oracle and SQL Server behave as expected, and the same (equivalent for Oracle) scripts succeed and commit with no errors as they should IMHO.</p>
+
+<p>It seems that the success or failure of the transaction for PostgreSQL, MySQL, and SQLite depend on some physical update order, and constraints are checked per row, before the update completes.
+This violates the fundamental ""All at once"" principle as I understand it.</p>
+
+<p>This doesn't make any sense to me. What am I missing?</p>
+
+<p>Stay safe and healthy!</p>
+",,,2020-03-25T03:13:29+00:00,2,True
+60842505,10699888,postgresql,&quot;Intermediate Consistency&quot; transaction fail,"<p>Hi all PostgreSQL / MySQL / SQLite experts and thanks in advance for your thoughts.</p>
+
+<p>Consider the following script:</p>
+
+<pre><code>CREATE TABLE T (Col1 INT PRIMARY KEY);
+
+INSERT INTO T VALUES (1), (2);
+
+UPDATE T SET Col1 = Col1 + 1;
+</code></pre>
+
+<p>Executing it in either PostgreSQL, MySQL, or SQLite results in a primary key violation error.</p>
+
+<p>However, the following code succeeds:</p>
+
+<pre><code>CREATE TABLE T (Col1 INT PRIMARY KEY);
+
+INSERT INTO T VALUES (1), (2);
+
+UPDATE T SET Col1 = Col1 - 1;
+</code></pre>
+
+<p>Oracle and SQL Server behave as expected, and the same (equivalent for Oracle) scripts succeed and commit with no errors as they should IMHO.</p>
+
+<p>It seems that the success or failure of the transaction for PostgreSQL, MySQL, and SQLite depend on some physical update order, and constraints are checked per row, before the update completes.
+This violates the fundamental ""All at once"" principle as I understand it.</p>
+
+<p>This doesn't make any sense to me. What am I missing?</p>
+
+<p>Stay safe and healthy!</p>
+",,,2020-03-25T03:13:29+00:00,2,True
+60842505,10699888,sqlite,&quot;Intermediate Consistency&quot; transaction fail,"<p>Hi all PostgreSQL / MySQL / SQLite experts and thanks in advance for your thoughts.</p>
+
+<p>Consider the following script:</p>
+
+<pre><code>CREATE TABLE T (Col1 INT PRIMARY KEY);
+
+INSERT INTO T VALUES (1), (2);
+
+UPDATE T SET Col1 = Col1 + 1;
+</code></pre>
+
+<p>Executing it in either PostgreSQL, MySQL, or SQLite results in a primary key violation error.</p>
+
+<p>However, the following code succeeds:</p>
+
+<pre><code>CREATE TABLE T (Col1 INT PRIMARY KEY);
+
+INSERT INTO T VALUES (1), (2);
+
+UPDATE T SET Col1 = Col1 - 1;
+</code></pre>
+
+<p>Oracle and SQL Server behave as expected, and the same (equivalent for Oracle) scripts succeed and commit with no errors as they should IMHO.</p>
+
+<p>It seems that the success or failure of the transaction for PostgreSQL, MySQL, and SQLite depend on some physical update order, and constraints are checked per row, before the update completes.
+This violates the fundamental ""All at once"" principle as I understand it.</p>
+
+<p>This doesn't make any sense to me. What am I missing?</p>
+
+<p>Stay safe and healthy!</p>
+",,,2020-03-25T03:13:29+00:00,2,True
+60797380,8847168,mysql,"If 9/10 columns match, return the row. How to do that?","<p>I am trying to figure out how to make a query that would return rows when most columns match the query.
+The query should ideally be PostgreSQL compatible. (If it was basic enough so I could test it locally in SQLite that would be completely awesome! But it doesn't have to.)</p>
+
+<p>I found a similar thread here but the query was compatible only with Oracle's DB.</p>
+
+<p>Any ideas on how that could be achieved most effectively? </p>
+
+<p>EXAMPLE TABLE:</p>
+
+<pre><code>col1|col2|col3
+  A |  B |  B 
+  Y |  Y |  Y 
+  X |  B |  X 
+  Y |  B |  B 
+</code></pre>
+
+<p>The query would look for columns where col1 = A and col2 = B and col3 = B.</p>
+
+<p>The output I am trying to get:</p>
+
+<pre><code>col1|col2|col3
+  A |  B |  B 
+  Y |  B |  B 
+</code></pre>
+
+<p>Create table schema for SQLite</p>
+
+<pre><code>CREATE TABLE ""t"" (
+    ""col1""  TEXT,
+    ""col2""  TEXT,
+    ""col3""  TEXT
+);
+</code></pre>
+
+<p>Sample data:</p>
+
+<pre><code>INSERT INTO 't' (col1, col2, col3)
+VALUES ('A', 'B', 'B'),
+('Y', 'B', 'B'),
+('X', 'B', 'X'),
+('A', 'B', 'X'),
+('Y', 'Y', 'Y')
+</code></pre>
+",,,2020-03-22T08:45:16+00:00,2,True
+60797380,8847168,sql,"If 9/10 columns match, return the row. How to do that?","<p>I am trying to figure out how to make a query that would return rows when most columns match the query.
+The query should ideally be PostgreSQL compatible. (If it was basic enough so I could test it locally in SQLite that would be completely awesome! But it doesn't have to.)</p>
+
+<p>I found a similar thread here but the query was compatible only with Oracle's DB.</p>
+
+<p>Any ideas on how that could be achieved most effectively? </p>
+
+<p>EXAMPLE TABLE:</p>
+
+<pre><code>col1|col2|col3
+  A |  B |  B 
+  Y |  Y |  Y 
+  X |  B |  X 
+  Y |  B |  B 
+</code></pre>
+
+<p>The query would look for columns where col1 = A and col2 = B and col3 = B.</p>
+
+<p>The output I am trying to get:</p>
+
+<pre><code>col1|col2|col3
+  A |  B |  B 
+  Y |  B |  B 
+</code></pre>
+
+<p>Create table schema for SQLite</p>
+
+<pre><code>CREATE TABLE ""t"" (
+    ""col1""  TEXT,
+    ""col2""  TEXT,
+    ""col3""  TEXT
+);
+</code></pre>
+
+<p>Sample data:</p>
+
+<pre><code>INSERT INTO 't' (col1, col2, col3)
+VALUES ('A', 'B', 'B'),
+('Y', 'B', 'B'),
+('X', 'B', 'X'),
+('A', 'B', 'X'),
+('Y', 'Y', 'Y')
+</code></pre>
+",,,2020-03-22T08:45:16+00:00,2,True
+60797380,8847168,postgresql,"If 9/10 columns match, return the row. How to do that?","<p>I am trying to figure out how to make a query that would return rows when most columns match the query.
+The query should ideally be PostgreSQL compatible. (If it was basic enough so I could test it locally in SQLite that would be completely awesome! But it doesn't have to.)</p>
+
+<p>I found a similar thread here but the query was compatible only with Oracle's DB.</p>
+
+<p>Any ideas on how that could be achieved most effectively? </p>
+
+<p>EXAMPLE TABLE:</p>
+
+<pre><code>col1|col2|col3
+  A |  B |  B 
+  Y |  Y |  Y 
+  X |  B |  X 
+  Y |  B |  B 
+</code></pre>
+
+<p>The query would look for columns where col1 = A and col2 = B and col3 = B.</p>
+
+<p>The output I am trying to get:</p>
+
+<pre><code>col1|col2|col3
+  A |  B |  B 
+  Y |  B |  B 
+</code></pre>
+
+<p>Create table schema for SQLite</p>
+
+<pre><code>CREATE TABLE ""t"" (
+    ""col1""  TEXT,
+    ""col2""  TEXT,
+    ""col3""  TEXT
+);
+</code></pre>
+
+<p>Sample data:</p>
+
+<pre><code>INSERT INTO 't' (col1, col2, col3)
+VALUES ('A', 'B', 'B'),
+('Y', 'B', 'B'),
+('X', 'B', 'X'),
+('A', 'B', 'X'),
+('Y', 'Y', 'Y')
+</code></pre>
+",,,2020-03-22T08:45:16+00:00,2,True
+60797380,8847168,sqlite,"If 9/10 columns match, return the row. How to do that?","<p>I am trying to figure out how to make a query that would return rows when most columns match the query.
+The query should ideally be PostgreSQL compatible. (If it was basic enough so I could test it locally in SQLite that would be completely awesome! But it doesn't have to.)</p>
+
+<p>I found a similar thread here but the query was compatible only with Oracle's DB.</p>
+
+<p>Any ideas on how that could be achieved most effectively? </p>
+
+<p>EXAMPLE TABLE:</p>
+
+<pre><code>col1|col2|col3
+  A |  B |  B 
+  Y |  Y |  Y 
+  X |  B |  X 
+  Y |  B |  B 
+</code></pre>
+
+<p>The query would look for columns where col1 = A and col2 = B and col3 = B.</p>
+
+<p>The output I am trying to get:</p>
+
+<pre><code>col1|col2|col3
+  A |  B |  B 
+  Y |  B |  B 
+</code></pre>
+
+<p>Create table schema for SQLite</p>
+
+<pre><code>CREATE TABLE ""t"" (
+    ""col1""  TEXT,
+    ""col2""  TEXT,
+    ""col3""  TEXT
+);
+</code></pre>
+
+<p>Sample data:</p>
+
+<pre><code>INSERT INTO 't' (col1, col2, col3)
+VALUES ('A', 'B', 'B'),
+('Y', 'B', 'B'),
+('X', 'B', 'X'),
+('A', 'B', 'X'),
+('Y', 'Y', 'Y')
+</code></pre>
+",,,2020-03-22T08:45:16+00:00,2,True
+52213060,6206788,mysql,How can i do a query in sql that gives the person o owns more houses?,"<p>I have 2 tables, house and clients , a cliente can have many houses but a house only belongs to a client, i need a query that gives me the person that owns more houses , how can i do that ?
+I know how to do a Count(*) and a Max but i cant build the right way to give what i want </p>
+
+<p>Tables 
+House
+Id
+Price
+Adress
+Id_client</p>
+
+<p>Clients
+Id
+Name</p>
+",,,2018-09-06T22:52:45+00:00,3,True
+52213060,6206788,sql,How can i do a query in sql that gives the person o owns more houses?,"<p>I have 2 tables, house and clients , a cliente can have many houses but a house only belongs to a client, i need a query that gives me the person that owns more houses , how can i do that ?
+I know how to do a Count(*) and a Max but i cant build the right way to give what i want </p>
+
+<p>Tables 
+House
+Id
+Price
+Adress
+Id_client</p>
+
+<p>Clients
+Id
+Name</p>
+",,,2018-09-06T22:52:45+00:00,3,True
+52213060,6206788,postgresql,How can i do a query in sql that gives the person o owns more houses?,"<p>I have 2 tables, house and clients , a cliente can have many houses but a house only belongs to a client, i need a query that gives me the person that owns more houses , how can i do that ?
+I know how to do a Count(*) and a Max but i cant build the right way to give what i want </p>
+
+<p>Tables 
+House
+Id
+Price
+Adress
+Id_client</p>
+
+<p>Clients
+Id
+Name</p>
+",,,2018-09-06T22:52:45+00:00,3,True
+52213060,6206788,sqlite,How can i do a query in sql that gives the person o owns more houses?,"<p>I have 2 tables, house and clients , a cliente can have many houses but a house only belongs to a client, i need a query that gives me the person that owns more houses , how can i do that ?
+I know how to do a Count(*) and a Max but i cant build the right way to give what i want </p>
+
+<p>Tables 
+House
+Id
+Price
+Adress
+Id_client</p>
+
+<p>Clients
+Id
+Name</p>
+",,,2018-09-06T22:52:45+00:00,3,True
+49955036,574621,mysql,SQL to combine (de-duplicate) Table A based on Table B data?,"<p>How do I write the SQL (SQLite3, postgres, or MySQL) to
+combine (de-duplicate) Table A based on Table B data?</p>
+
+<p>Given People (table: contacts) that have Phone Numbers (table: phones),
+I want to use phone numbers to remove duplicate contacts.</p>
+
+<p>In this example there the company is there for clarification, the
+real data may not have the same company listed even though the
+person is the same based on phone number.</p>
+
+<p>Note, in this example, there are two distinct Betty's, but the
+two Charles are the same person and should be combined.</p>
+
+<p>Also, Ashok and Dale have a common phone number because they
+work for the same company, but are not the same person.</p>
+
+<pre><code>Table: contacts
+===============
+id      name      company
+1       Ashok     Alpha Co.
+2       Betty     Beta Inc.
+3       Charles   Cain LLC.          &lt;---|
+4       Betty     Delta Corp.            |-- same person
+5       Charles   Cain LLC.          &lt;---|
+6       Dale      Alpha Co.
+
+Table: phones
+============
+id      phone_number    contact_id
+1       (111) 123-1111  1
+2       (111) 123-2222  1
+3       (111) 123-3333  1
+4       (111) 123-4444  1
+5       (222) 456-1111  2
+6       (222) 456-2222  2
+7       (333) 789-1111  3
+8       (333) 789-2222  3
+9       (333) 789-3333  3
+10      (333) 789-4444  3
+11      (444) 456-7777  4
+12      (444) 456-8888  4
+13      (555) 789-5555  5
+14      (333) 789-2222  5
+15      (111) 123-3333  6
+</code></pre>
+
+<p>Joining the tables gives:</p>
+
+<pre><code>SELECT      c.id, c.name, c.company, p.phone_number, p.contact_id
+FROM        contacts as c
+INNER JOIN  phones as p
+ON          c.id = p.contact_id
+
+c.id    c.name      c.company       p.phone         p.contact_id
+1       Ashok       Alpha Co.       (111) 123-1111  1
+1       Ashok       Alpha Co.       (111) 123-2222  1
+1       Ashok       Alpha Co.       (111) 123-3333  1
+1       Ashok       Alpha Co.       (111) 123-4444  1
+2       Betty       Beta Inc.       (222) 456-1111  2
+2       Betty       Beta Inc.       (222) 456-2222  2
+3       Charles     Cain LLC.       (333) 789-1111  3
+3       Charles     Cain LLC.       (333) 789-2222  3
+3       Charles     Cain LLC.       (333) 789-3333  3
+3       Charles     Cain LLC.       (333) 789-4444  3
+4       Betty       Delta Corp.     (444) 456-7777  4
+4       Betty       Delta Corp.     (444) 456-8888  4
+5       Charles     Cain LLC.       (555) 789-5555  5
+5       Charles     Cain LLC.       (333) 789-2222  5
+6       Dale        Alpha Co.       (111) 123-3333  6
+</code></pre>
+
+<p>So what I am thinking is that I would want to loop through all
+of the distint phone numbers, get all of the contacts for each
+of those numbers, check to see if the names are the same, if
+they are remove the duplicate contact and change the contact_ids
+on the phone numbers.</p>
+
+<p>so the result would look like:</p>
+
+<pre><code>Table: contacts
+===============
+id      name      company
+1       Ashok     Alpha Co.
+2       Betty     Beta Inc.
+3       Charles   Cain LLC.
+4       Betty     Delta Corp.       &lt;-- Note the duplicate Charles (5) is removed
+6       Dale      Alpha Co.
+
+Table: phones
+============
+id      phone_number    contact_id
+1       (111) 123-1111  1
+2       (111) 123-2222  1
+3       (111) 123-3333  1
+4       (111) 123-4444  1
+5       (222) 456-1111  2
+6       (222) 456-2222  2
+7       (333) 789-1111  3
+8       (333) 789-2222  3
+9       (333) 789-3333  3
+10      (333) 789-4444  3
+11      (444) 456-7777  4
+12      (444) 456-8888  4
+13      (555) 789-5555  3         &lt;-- Note the contact_id is updated
+15      (111) 123-3333  6         &lt;-- Note the duplicate phone number (14) is removed
+</code></pre>
+
+<p>or</p>
+
+<pre><code>c.id    c.name      c.company       p.phone         p.contact_id
+1       Ashok       Alpha Co.       (111) 123-1111  1
+1       Ashok       Alpha Co.       (111) 123-2222  1
+1       Ashok       Alpha Co.       (111) 123-3333  1
+1       Ashok       Alpha Co.       (111) 123-4444  1
+2       Betty       Beta Inc.       (222) 456-1111  2
+2       Betty       Beta Inc.       (222) 456-2222  2
+3       Charles     Cain LLC.       (333) 789-1111  3
+3       Charles     Cain LLC.       (333) 789-2222  3
+3       Charles     Cain LLC.       (333) 789-3333  3
+3       Charles     Cain LLC.       (333) 789-4444  3
+4       Betty       Delta Corp.     (444) 456-7777  4
+4       Betty       Delta Corp.     (444) 456-8888  4
+3       Charles     Cain LLC.       (555) 789-5555  3
+6       Dale        Alpha Co.       (111) 123-3333  6
+</code></pre>
+",,,2018-04-21T10:56:26+00:00,2,True
+49955036,574621,sql,SQL to combine (de-duplicate) Table A based on Table B data?,"<p>How do I write the SQL (SQLite3, postgres, or MySQL) to
+combine (de-duplicate) Table A based on Table B data?</p>
+
+<p>Given People (table: contacts) that have Phone Numbers (table: phones),
+I want to use phone numbers to remove duplicate contacts.</p>
+
+<p>In this example there the company is there for clarification, the
+real data may not have the same company listed even though the
+person is the same based on phone number.</p>
+
+<p>Note, in this example, there are two distinct Betty's, but the
+two Charles are the same person and should be combined.</p>
+
+<p>Also, Ashok and Dale have a common phone number because they
+work for the same company, but are not the same person.</p>
+
+<pre><code>Table: contacts
+===============
+id      name      company
+1       Ashok     Alpha Co.
+2       Betty     Beta Inc.
+3       Charles   Cain LLC.          &lt;---|
+4       Betty     Delta Corp.            |-- same person
+5       Charles   Cain LLC.          &lt;---|
+6       Dale      Alpha Co.
+
+Table: phones
+============
+id      phone_number    contact_id
+1       (111) 123-1111  1
+2       (111) 123-2222  1
+3       (111) 123-3333  1
+4       (111) 123-4444  1
+5       (222) 456-1111  2
+6       (222) 456-2222  2
+7       (333) 789-1111  3
+8       (333) 789-2222  3
+9       (333) 789-3333  3
+10      (333) 789-4444  3
+11      (444) 456-7777  4
+12      (444) 456-8888  4
+13      (555) 789-5555  5
+14      (333) 789-2222  5
+15      (111) 123-3333  6
+</code></pre>
+
+<p>Joining the tables gives:</p>
+
+<pre><code>SELECT      c.id, c.name, c.company, p.phone_number, p.contact_id
+FROM        contacts as c
+INNER JOIN  phones as p
+ON          c.id = p.contact_id
+
+c.id    c.name      c.company       p.phone         p.contact_id
+1       Ashok       Alpha Co.       (111) 123-1111  1
+1       Ashok       Alpha Co.       (111) 123-2222  1
+1       Ashok       Alpha Co.       (111) 123-3333  1
+1       Ashok       Alpha Co.       (111) 123-4444  1
+2       Betty       Beta Inc.       (222) 456-1111  2
+2       Betty       Beta Inc.       (222) 456-2222  2
+3       Charles     Cain LLC.       (333) 789-1111  3
+3       Charles     Cain LLC.       (333) 789-2222  3
+3       Charles     Cain LLC.       (333) 789-3333  3
+3       Charles     Cain LLC.       (333) 789-4444  3
+4       Betty       Delta Corp.     (444) 456-7777  4
+4       Betty       Delta Corp.     (444) 456-8888  4
+5       Charles     Cain LLC.       (555) 789-5555  5
+5       Charles     Cain LLC.       (333) 789-2222  5
+6       Dale        Alpha Co.       (111) 123-3333  6
+</code></pre>
+
+<p>So what I am thinking is that I would want to loop through all
+of the distint phone numbers, get all of the contacts for each
+of those numbers, check to see if the names are the same, if
+they are remove the duplicate contact and change the contact_ids
+on the phone numbers.</p>
+
+<p>so the result would look like:</p>
+
+<pre><code>Table: contacts
+===============
+id      name      company
+1       Ashok     Alpha Co.
+2       Betty     Beta Inc.
+3       Charles   Cain LLC.
+4       Betty     Delta Corp.       &lt;-- Note the duplicate Charles (5) is removed
+6       Dale      Alpha Co.
+
+Table: phones
+============
+id      phone_number    contact_id
+1       (111) 123-1111  1
+2       (111) 123-2222  1
+3       (111) 123-3333  1
+4       (111) 123-4444  1
+5       (222) 456-1111  2
+6       (222) 456-2222  2
+7       (333) 789-1111  3
+8       (333) 789-2222  3
+9       (333) 789-3333  3
+10      (333) 789-4444  3
+11      (444) 456-7777  4
+12      (444) 456-8888  4
+13      (555) 789-5555  3         &lt;-- Note the contact_id is updated
+15      (111) 123-3333  6         &lt;-- Note the duplicate phone number (14) is removed
+</code></pre>
+
+<p>or</p>
+
+<pre><code>c.id    c.name      c.company       p.phone         p.contact_id
+1       Ashok       Alpha Co.       (111) 123-1111  1
+1       Ashok       Alpha Co.       (111) 123-2222  1
+1       Ashok       Alpha Co.       (111) 123-3333  1
+1       Ashok       Alpha Co.       (111) 123-4444  1
+2       Betty       Beta Inc.       (222) 456-1111  2
+2       Betty       Beta Inc.       (222) 456-2222  2
+3       Charles     Cain LLC.       (333) 789-1111  3
+3       Charles     Cain LLC.       (333) 789-2222  3
+3       Charles     Cain LLC.       (333) 789-3333  3
+3       Charles     Cain LLC.       (333) 789-4444  3
+4       Betty       Delta Corp.     (444) 456-7777  4
+4       Betty       Delta Corp.     (444) 456-8888  4
+3       Charles     Cain LLC.       (555) 789-5555  3
+6       Dale        Alpha Co.       (111) 123-3333  6
+</code></pre>
+",,,2018-04-21T10:56:26+00:00,2,True
+49955036,574621,postgresql,SQL to combine (de-duplicate) Table A based on Table B data?,"<p>How do I write the SQL (SQLite3, postgres, or MySQL) to
+combine (de-duplicate) Table A based on Table B data?</p>
+
+<p>Given People (table: contacts) that have Phone Numbers (table: phones),
+I want to use phone numbers to remove duplicate contacts.</p>
+
+<p>In this example there the company is there for clarification, the
+real data may not have the same company listed even though the
+person is the same based on phone number.</p>
+
+<p>Note, in this example, there are two distinct Betty's, but the
+two Charles are the same person and should be combined.</p>
+
+<p>Also, Ashok and Dale have a common phone number because they
+work for the same company, but are not the same person.</p>
+
+<pre><code>Table: contacts
+===============
+id      name      company
+1       Ashok     Alpha Co.
+2       Betty     Beta Inc.
+3       Charles   Cain LLC.          &lt;---|
+4       Betty     Delta Corp.            |-- same person
+5       Charles   Cain LLC.          &lt;---|
+6       Dale      Alpha Co.
+
+Table: phones
+============
+id      phone_number    contact_id
+1       (111) 123-1111  1
+2       (111) 123-2222  1
+3       (111) 123-3333  1
+4       (111) 123-4444  1
+5       (222) 456-1111  2
+6       (222) 456-2222  2
+7       (333) 789-1111  3
+8       (333) 789-2222  3
+9       (333) 789-3333  3
+10      (333) 789-4444  3
+11      (444) 456-7777  4
+12      (444) 456-8888  4
+13      (555) 789-5555  5
+14      (333) 789-2222  5
+15      (111) 123-3333  6
+</code></pre>
+
+<p>Joining the tables gives:</p>
+
+<pre><code>SELECT      c.id, c.name, c.company, p.phone_number, p.contact_id
+FROM        contacts as c
+INNER JOIN  phones as p
+ON          c.id = p.contact_id
+
+c.id    c.name      c.company       p.phone         p.contact_id
+1       Ashok       Alpha Co.       (111) 123-1111  1
+1       Ashok       Alpha Co.       (111) 123-2222  1
+1       Ashok       Alpha Co.       (111) 123-3333  1
+1       Ashok       Alpha Co.       (111) 123-4444  1
+2       Betty       Beta Inc.       (222) 456-1111  2
+2       Betty       Beta Inc.       (222) 456-2222  2
+3       Charles     Cain LLC.       (333) 789-1111  3
+3       Charles     Cain LLC.       (333) 789-2222  3
+3       Charles     Cain LLC.       (333) 789-3333  3
+3       Charles     Cain LLC.       (333) 789-4444  3
+4       Betty       Delta Corp.     (444) 456-7777  4
+4       Betty       Delta Corp.     (444) 456-8888  4
+5       Charles     Cain LLC.       (555) 789-5555  5
+5       Charles     Cain LLC.       (333) 789-2222  5
+6       Dale        Alpha Co.       (111) 123-3333  6
+</code></pre>
+
+<p>So what I am thinking is that I would want to loop through all
+of the distint phone numbers, get all of the contacts for each
+of those numbers, check to see if the names are the same, if
+they are remove the duplicate contact and change the contact_ids
+on the phone numbers.</p>
+
+<p>so the result would look like:</p>
+
+<pre><code>Table: contacts
+===============
+id      name      company
+1       Ashok     Alpha Co.
+2       Betty     Beta Inc.
+3       Charles   Cain LLC.
+4       Betty     Delta Corp.       &lt;-- Note the duplicate Charles (5) is removed
+6       Dale      Alpha Co.
+
+Table: phones
+============
+id      phone_number    contact_id
+1       (111) 123-1111  1
+2       (111) 123-2222  1
+3       (111) 123-3333  1
+4       (111) 123-4444  1
+5       (222) 456-1111  2
+6       (222) 456-2222  2
+7       (333) 789-1111  3
+8       (333) 789-2222  3
+9       (333) 789-3333  3
+10      (333) 789-4444  3
+11      (444) 456-7777  4
+12      (444) 456-8888  4
+13      (555) 789-5555  3         &lt;-- Note the contact_id is updated
+15      (111) 123-3333  6         &lt;-- Note the duplicate phone number (14) is removed
+</code></pre>
+
+<p>or</p>
+
+<pre><code>c.id    c.name      c.company       p.phone         p.contact_id
+1       Ashok       Alpha Co.       (111) 123-1111  1
+1       Ashok       Alpha Co.       (111) 123-2222  1
+1       Ashok       Alpha Co.       (111) 123-3333  1
+1       Ashok       Alpha Co.       (111) 123-4444  1
+2       Betty       Beta Inc.       (222) 456-1111  2
+2       Betty       Beta Inc.       (222) 456-2222  2
+3       Charles     Cain LLC.       (333) 789-1111  3
+3       Charles     Cain LLC.       (333) 789-2222  3
+3       Charles     Cain LLC.       (333) 789-3333  3
+3       Charles     Cain LLC.       (333) 789-4444  3
+4       Betty       Delta Corp.     (444) 456-7777  4
+4       Betty       Delta Corp.     (444) 456-8888  4
+3       Charles     Cain LLC.       (555) 789-5555  3
+6       Dale        Alpha Co.       (111) 123-3333  6
+</code></pre>
+",,,2018-04-21T10:56:26+00:00,2,True
+49955036,574621,sqlite,SQL to combine (de-duplicate) Table A based on Table B data?,"<p>How do I write the SQL (SQLite3, postgres, or MySQL) to
+combine (de-duplicate) Table A based on Table B data?</p>
+
+<p>Given People (table: contacts) that have Phone Numbers (table: phones),
+I want to use phone numbers to remove duplicate contacts.</p>
+
+<p>In this example there the company is there for clarification, the
+real data may not have the same company listed even though the
+person is the same based on phone number.</p>
+
+<p>Note, in this example, there are two distinct Betty's, but the
+two Charles are the same person and should be combined.</p>
+
+<p>Also, Ashok and Dale have a common phone number because they
+work for the same company, but are not the same person.</p>
+
+<pre><code>Table: contacts
+===============
+id      name      company
+1       Ashok     Alpha Co.
+2       Betty     Beta Inc.
+3       Charles   Cain LLC.          &lt;---|
+4       Betty     Delta Corp.            |-- same person
+5       Charles   Cain LLC.          &lt;---|
+6       Dale      Alpha Co.
+
+Table: phones
+============
+id      phone_number    contact_id
+1       (111) 123-1111  1
+2       (111) 123-2222  1
+3       (111) 123-3333  1
+4       (111) 123-4444  1
+5       (222) 456-1111  2
+6       (222) 456-2222  2
+7       (333) 789-1111  3
+8       (333) 789-2222  3
+9       (333) 789-3333  3
+10      (333) 789-4444  3
+11      (444) 456-7777  4
+12      (444) 456-8888  4
+13      (555) 789-5555  5
+14      (333) 789-2222  5
+15      (111) 123-3333  6
+</code></pre>
+
+<p>Joining the tables gives:</p>
+
+<pre><code>SELECT      c.id, c.name, c.company, p.phone_number, p.contact_id
+FROM        contacts as c
+INNER JOIN  phones as p
+ON          c.id = p.contact_id
+
+c.id    c.name      c.company       p.phone         p.contact_id
+1       Ashok       Alpha Co.       (111) 123-1111  1
+1       Ashok       Alpha Co.       (111) 123-2222  1
+1       Ashok       Alpha Co.       (111) 123-3333  1
+1       Ashok       Alpha Co.       (111) 123-4444  1
+2       Betty       Beta Inc.       (222) 456-1111  2
+2       Betty       Beta Inc.       (222) 456-2222  2
+3       Charles     Cain LLC.       (333) 789-1111  3
+3       Charles     Cain LLC.       (333) 789-2222  3
+3       Charles     Cain LLC.       (333) 789-3333  3
+3       Charles     Cain LLC.       (333) 789-4444  3
+4       Betty       Delta Corp.     (444) 456-7777  4
+4       Betty       Delta Corp.     (444) 456-8888  4
+5       Charles     Cain LLC.       (555) 789-5555  5
+5       Charles     Cain LLC.       (333) 789-2222  5
+6       Dale        Alpha Co.       (111) 123-3333  6
+</code></pre>
+
+<p>So what I am thinking is that I would want to loop through all
+of the distint phone numbers, get all of the contacts for each
+of those numbers, check to see if the names are the same, if
+they are remove the duplicate contact and change the contact_ids
+on the phone numbers.</p>
+
+<p>so the result would look like:</p>
+
+<pre><code>Table: contacts
+===============
+id      name      company
+1       Ashok     Alpha Co.
+2       Betty     Beta Inc.
+3       Charles   Cain LLC.
+4       Betty     Delta Corp.       &lt;-- Note the duplicate Charles (5) is removed
+6       Dale      Alpha Co.
+
+Table: phones
+============
+id      phone_number    contact_id
+1       (111) 123-1111  1
+2       (111) 123-2222  1
+3       (111) 123-3333  1
+4       (111) 123-4444  1
+5       (222) 456-1111  2
+6       (222) 456-2222  2
+7       (333) 789-1111  3
+8       (333) 789-2222  3
+9       (333) 789-3333  3
+10      (333) 789-4444  3
+11      (444) 456-7777  4
+12      (444) 456-8888  4
+13      (555) 789-5555  3         &lt;-- Note the contact_id is updated
+15      (111) 123-3333  6         &lt;-- Note the duplicate phone number (14) is removed
+</code></pre>
+
+<p>or</p>
+
+<pre><code>c.id    c.name      c.company       p.phone         p.contact_id
+1       Ashok       Alpha Co.       (111) 123-1111  1
+1       Ashok       Alpha Co.       (111) 123-2222  1
+1       Ashok       Alpha Co.       (111) 123-3333  1
+1       Ashok       Alpha Co.       (111) 123-4444  1
+2       Betty       Beta Inc.       (222) 456-1111  2
+2       Betty       Beta Inc.       (222) 456-2222  2
+3       Charles     Cain LLC.       (333) 789-1111  3
+3       Charles     Cain LLC.       (333) 789-2222  3
+3       Charles     Cain LLC.       (333) 789-3333  3
+3       Charles     Cain LLC.       (333) 789-4444  3
+4       Betty       Delta Corp.     (444) 456-7777  4
+4       Betty       Delta Corp.     (444) 456-8888  4
+3       Charles     Cain LLC.       (555) 789-5555  3
+6       Dale        Alpha Co.       (111) 123-3333  6
+</code></pre>
+",,,2018-04-21T10:56:26+00:00,2,True
+49954559,574621,mysql,SQL to list tables a&#39;s associated data from table b,"<p>Given People (table: contacts) that have Phone Numbers (table: phones),</p>
+
+<p>How do I write an SQL query (Sqlite3, postgres, or MySQL) to show each person and all of their phone numbers?</p>
+
+<pre><code> Table: contacts      Table: Phones
+ id  name             id  phone_number    contact_id
+ 1   Ashok            1   (111) 123-1111  1
+ 2   Betty            2   (111) 123-2222  1
+ 3   Charles          3   (111) 123-3333  1
+                      4   (111) 123-4444  1
+                      5   (222) 456-1111  2
+                      6   (222) 456-2222  2
+                      7   (333) 789-1111  3
+                      8   (333) 789-2222  3
+                      9   (333) 789-3333  3
+</code></pre>
+
+<p>I want the output to be:</p>
+
+<pre><code>Name    Phones
+Ashok   (111) 123-1111 (111) 123-2222 (111) 123-3333 (111) 123-4444
+Betty   (222) 456-1111 (222) 456-2222 
+Charles (333) 789-1111 (333) 789-2222 (333) 789-3333
+</code></pre>
+
+<p>If I do a join:</p>
+
+<pre><code>SELECT      c.name, p.phone_number
+FROM        contacts as c
+INNER JOIN  phones as p
+ON          c.id = p.contact_id
+ORDER BY    c.name
+</code></pre>
+
+<p>the result is not what I want:</p>
+
+<pre><code>Name    Phone
+Ashok   (111) 123-1111
+Ashok   (111) 123-2222
+Ashok   (111) 123-3333
+Ashok   (111) 123-4444
+Betty   (222) 456-1111
+Betty   (222) 456-2222
+Charles (333) 789-1111
+Charles (333) 789-2222
+Charles (333) 789-3333
+</code></pre>
+",,,2018-04-21T10:00:25+00:00,1,True
+49954559,574621,sql,SQL to list tables a&#39;s associated data from table b,"<p>Given People (table: contacts) that have Phone Numbers (table: phones),</p>
+
+<p>How do I write an SQL query (Sqlite3, postgres, or MySQL) to show each person and all of their phone numbers?</p>
+
+<pre><code> Table: contacts      Table: Phones
+ id  name             id  phone_number    contact_id
+ 1   Ashok            1   (111) 123-1111  1
+ 2   Betty            2   (111) 123-2222  1
+ 3   Charles          3   (111) 123-3333  1
+                      4   (111) 123-4444  1
+                      5   (222) 456-1111  2
+                      6   (222) 456-2222  2
+                      7   (333) 789-1111  3
+                      8   (333) 789-2222  3
+                      9   (333) 789-3333  3
+</code></pre>
+
+<p>I want the output to be:</p>
+
+<pre><code>Name    Phones
+Ashok   (111) 123-1111 (111) 123-2222 (111) 123-3333 (111) 123-4444
+Betty   (222) 456-1111 (222) 456-2222 
+Charles (333) 789-1111 (333) 789-2222 (333) 789-3333
+</code></pre>
+
+<p>If I do a join:</p>
+
+<pre><code>SELECT      c.name, p.phone_number
+FROM        contacts as c
+INNER JOIN  phones as p
+ON          c.id = p.contact_id
+ORDER BY    c.name
+</code></pre>
+
+<p>the result is not what I want:</p>
+
+<pre><code>Name    Phone
+Ashok   (111) 123-1111
+Ashok   (111) 123-2222
+Ashok   (111) 123-3333
+Ashok   (111) 123-4444
+Betty   (222) 456-1111
+Betty   (222) 456-2222
+Charles (333) 789-1111
+Charles (333) 789-2222
+Charles (333) 789-3333
+</code></pre>
+",,,2018-04-21T10:00:25+00:00,1,True
+49954559,574621,postgresql,SQL to list tables a&#39;s associated data from table b,"<p>Given People (table: contacts) that have Phone Numbers (table: phones),</p>
+
+<p>How do I write an SQL query (Sqlite3, postgres, or MySQL) to show each person and all of their phone numbers?</p>
+
+<pre><code> Table: contacts      Table: Phones
+ id  name             id  phone_number    contact_id
+ 1   Ashok            1   (111) 123-1111  1
+ 2   Betty            2   (111) 123-2222  1
+ 3   Charles          3   (111) 123-3333  1
+                      4   (111) 123-4444  1
+                      5   (222) 456-1111  2
+                      6   (222) 456-2222  2
+                      7   (333) 789-1111  3
+                      8   (333) 789-2222  3
+                      9   (333) 789-3333  3
+</code></pre>
+
+<p>I want the output to be:</p>
+
+<pre><code>Name    Phones
+Ashok   (111) 123-1111 (111) 123-2222 (111) 123-3333 (111) 123-4444
+Betty   (222) 456-1111 (222) 456-2222 
+Charles (333) 789-1111 (333) 789-2222 (333) 789-3333
+</code></pre>
+
+<p>If I do a join:</p>
+
+<pre><code>SELECT      c.name, p.phone_number
+FROM        contacts as c
+INNER JOIN  phones as p
+ON          c.id = p.contact_id
+ORDER BY    c.name
+</code></pre>
+
+<p>the result is not what I want:</p>
+
+<pre><code>Name    Phone
+Ashok   (111) 123-1111
+Ashok   (111) 123-2222
+Ashok   (111) 123-3333
+Ashok   (111) 123-4444
+Betty   (222) 456-1111
+Betty   (222) 456-2222
+Charles (333) 789-1111
+Charles (333) 789-2222
+Charles (333) 789-3333
+</code></pre>
+",,,2018-04-21T10:00:25+00:00,1,True
+49954559,574621,sqlite,SQL to list tables a&#39;s associated data from table b,"<p>Given People (table: contacts) that have Phone Numbers (table: phones),</p>
+
+<p>How do I write an SQL query (Sqlite3, postgres, or MySQL) to show each person and all of their phone numbers?</p>
+
+<pre><code> Table: contacts      Table: Phones
+ id  name             id  phone_number    contact_id
+ 1   Ashok            1   (111) 123-1111  1
+ 2   Betty            2   (111) 123-2222  1
+ 3   Charles          3   (111) 123-3333  1
+                      4   (111) 123-4444  1
+                      5   (222) 456-1111  2
+                      6   (222) 456-2222  2
+                      7   (333) 789-1111  3
+                      8   (333) 789-2222  3
+                      9   (333) 789-3333  3
+</code></pre>
+
+<p>I want the output to be:</p>
+
+<pre><code>Name    Phones
+Ashok   (111) 123-1111 (111) 123-2222 (111) 123-3333 (111) 123-4444
+Betty   (222) 456-1111 (222) 456-2222 
+Charles (333) 789-1111 (333) 789-2222 (333) 789-3333
+</code></pre>
+
+<p>If I do a join:</p>
+
+<pre><code>SELECT      c.name, p.phone_number
+FROM        contacts as c
+INNER JOIN  phones as p
+ON          c.id = p.contact_id
+ORDER BY    c.name
+</code></pre>
+
+<p>the result is not what I want:</p>
+
+<pre><code>Name    Phone
+Ashok   (111) 123-1111
+Ashok   (111) 123-2222
+Ashok   (111) 123-3333
+Ashok   (111) 123-4444
+Betty   (222) 456-1111
+Betty   (222) 456-2222
+Charles (333) 789-1111
+Charles (333) 789-2222
+Charles (333) 789-3333
+</code></pre>
+",,,2018-04-21T10:00:25+00:00,1,True
+46884084,5594445,mysql,SQL query to select only results having an exclusive set of related entities from another table,"<p>I have a relational DB with 2 tables, let's say <code>paintings</code> and <code>colors</code>. They are in a many-to-many relation via the pivot table, <code>color_painting</code>.</p>
+
+<p>The ""paintings"" table:</p>
+
+<pre><code>id  name
+---------------------
+1   Lion and cubs
+2   Sunset in Ontario
+</code></pre>
+
+<p>The ""colors"" table:</p>
+
+<pre><code>id  color
+---------------------
+1   grey
+2   yellow
+3   orange
+</code></pre>
+
+<p>The ""color_painting"" table:</p>
+
+<pre><code>painting_id  color_id
+---------------------
+1            1
+1            2
+2            1
+2            2
+2            3
+</code></pre>
+
+<p>So, paintings are linked to colors as follows:</p>
+
+<p>""<code>Lion and cubs</code>"" is linked to colors ""<code>grey</code>"" and ""<code>yellow</code>""</p>
+
+<p>""<code>Sunset in Ontario</code>"" is linked to ""<code>grey</code>"", ""<code>yellow</code>"" and ""<code>orange</code>""</p>
+
+<p>How do I write an SQL query that selects paintings that have ONLY specific colors in them, and no other colors? </p>
+
+<p>E.g. I want paintings that only have ""grey"" and ""yellow"". Thus, the query should return the ""Lion and cubs"" painting but NOT ""Sunset"", since ""Sunset"" also has ""orange"".</p>
+
+<p>Is it possible to do with one query? (The SQL should run on MySQL, SQLite, PostgreSQL, and SQL Server dialects).</p>
+",,,2017-10-23T07:35:29+00:00,2,True
+46884084,5594445,sql,SQL query to select only results having an exclusive set of related entities from another table,"<p>I have a relational DB with 2 tables, let's say <code>paintings</code> and <code>colors</code>. They are in a many-to-many relation via the pivot table, <code>color_painting</code>.</p>
+
+<p>The ""paintings"" table:</p>
+
+<pre><code>id  name
+---------------------
+1   Lion and cubs
+2   Sunset in Ontario
+</code></pre>
+
+<p>The ""colors"" table:</p>
+
+<pre><code>id  color
+---------------------
+1   grey
+2   yellow
+3   orange
+</code></pre>
+
+<p>The ""color_painting"" table:</p>
+
+<pre><code>painting_id  color_id
+---------------------
+1            1
+1            2
+2            1
+2            2
+2            3
+</code></pre>
+
+<p>So, paintings are linked to colors as follows:</p>
+
+<p>""<code>Lion and cubs</code>"" is linked to colors ""<code>grey</code>"" and ""<code>yellow</code>""</p>
+
+<p>""<code>Sunset in Ontario</code>"" is linked to ""<code>grey</code>"", ""<code>yellow</code>"" and ""<code>orange</code>""</p>
+
+<p>How do I write an SQL query that selects paintings that have ONLY specific colors in them, and no other colors? </p>
+
+<p>E.g. I want paintings that only have ""grey"" and ""yellow"". Thus, the query should return the ""Lion and cubs"" painting but NOT ""Sunset"", since ""Sunset"" also has ""orange"".</p>
+
+<p>Is it possible to do with one query? (The SQL should run on MySQL, SQLite, PostgreSQL, and SQL Server dialects).</p>
+",,,2017-10-23T07:35:29+00:00,2,True
+46884084,5594445,postgresql,SQL query to select only results having an exclusive set of related entities from another table,"<p>I have a relational DB with 2 tables, let's say <code>paintings</code> and <code>colors</code>. They are in a many-to-many relation via the pivot table, <code>color_painting</code>.</p>
+
+<p>The ""paintings"" table:</p>
+
+<pre><code>id  name
+---------------------
+1   Lion and cubs
+2   Sunset in Ontario
+</code></pre>
+
+<p>The ""colors"" table:</p>
+
+<pre><code>id  color
+---------------------
+1   grey
+2   yellow
+3   orange
+</code></pre>
+
+<p>The ""color_painting"" table:</p>
+
+<pre><code>painting_id  color_id
+---------------------
+1            1
+1            2
+2            1
+2            2
+2            3
+</code></pre>
+
+<p>So, paintings are linked to colors as follows:</p>
+
+<p>""<code>Lion and cubs</code>"" is linked to colors ""<code>grey</code>"" and ""<code>yellow</code>""</p>
+
+<p>""<code>Sunset in Ontario</code>"" is linked to ""<code>grey</code>"", ""<code>yellow</code>"" and ""<code>orange</code>""</p>
+
+<p>How do I write an SQL query that selects paintings that have ONLY specific colors in them, and no other colors? </p>
+
+<p>E.g. I want paintings that only have ""grey"" and ""yellow"". Thus, the query should return the ""Lion and cubs"" painting but NOT ""Sunset"", since ""Sunset"" also has ""orange"".</p>
+
+<p>Is it possible to do with one query? (The SQL should run on MySQL, SQLite, PostgreSQL, and SQL Server dialects).</p>
+",,,2017-10-23T07:35:29+00:00,2,True
+46884084,5594445,sqlite,SQL query to select only results having an exclusive set of related entities from another table,"<p>I have a relational DB with 2 tables, let's say <code>paintings</code> and <code>colors</code>. They are in a many-to-many relation via the pivot table, <code>color_painting</code>.</p>
+
+<p>The ""paintings"" table:</p>
+
+<pre><code>id  name
+---------------------
+1   Lion and cubs
+2   Sunset in Ontario
+</code></pre>
+
+<p>The ""colors"" table:</p>
+
+<pre><code>id  color
+---------------------
+1   grey
+2   yellow
+3   orange
+</code></pre>
+
+<p>The ""color_painting"" table:</p>
+
+<pre><code>painting_id  color_id
+---------------------
+1            1
+1            2
+2            1
+2            2
+2            3
+</code></pre>
+
+<p>So, paintings are linked to colors as follows:</p>
+
+<p>""<code>Lion and cubs</code>"" is linked to colors ""<code>grey</code>"" and ""<code>yellow</code>""</p>
+
+<p>""<code>Sunset in Ontario</code>"" is linked to ""<code>grey</code>"", ""<code>yellow</code>"" and ""<code>orange</code>""</p>
+
+<p>How do I write an SQL query that selects paintings that have ONLY specific colors in them, and no other colors? </p>
+
+<p>E.g. I want paintings that only have ""grey"" and ""yellow"". Thus, the query should return the ""Lion and cubs"" painting but NOT ""Sunset"", since ""Sunset"" also has ""orange"".</p>
+
+<p>Is it possible to do with one query? (The SQL should run on MySQL, SQLite, PostgreSQL, and SQL Server dialects).</p>
+",,,2017-10-23T07:35:29+00:00,2,True
+42022770,1230358,mysql,Standard SQL and previous and next row values,"<p>I know this is a common question and I've done some reading on it. What I want is a performant way (best in one query) for receiving the the next and previous row id, based on a reference row id. I've found many questions and answers here at stackoverflow and one valuable thread with a really nice answer <a href=""https://stackoverflow.com/a/15992856/1230358"">https://stackoverflow.com/a/15992856/1230358</a>. What I have is based on the answers in this thread.</p>
+
+<pre><code>select id from test_1
+where ( 
+    id = IFNULL((select max(id) from test_1 where id &lt; 2 order by starts_on, id), 0)
+    or id = IFNULL((select min(id) from test_1 where id &gt; 2 order by starts_on, id), 0) 
+)
+</code></pre>
+
+<p>Querying with the reference <code>id=2</code> returns exactlythe result that I need (first row is the previous id, second row is the next id):</p>
+
+<pre><code>id
+--
+1
+--
+3
+</code></pre>
+
+<p>The problem is, if querying the edge cases <code>id=1</code> or <code>id=max(id)</code>, the results miss either the previous
+or next row id, because there simply is no no previous or next row. The result has now only one row and it's not clear if this is either the previous our next row id.</p>
+
+<pre><code>id
+--
+2       (next value)
+</code></pre>
+
+<p>However, i need a result like this</p>
+
+<pre><code>id
+--
+NULL    (or 0 - previous value)
+--
+2       (next value)
+</code></pre>
+
+<p>What I need is a solution based or similar in performance to the upper query, that fills the non-existant edgecases ids preferable with a NULL value (or 0). As I'm cunsuming the results with a webframework supporting different dbms, it should work with <strong><code>mysql</code>, <code>sqlite</code>, and <code>postgres</code></strong>. It should work with the following schema:</p>
+
+<pre><code>drop table if exists test_1;
+create table test_1 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+
+drop table if exists test_2;
+create table test_2 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_2 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-07 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-08 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-03 00:00:00', '2017-01-09 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-04 00:00:00', '2017-01-10 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-05 00:00:00', '2017-01-11 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-06 00:00:00', '2017-01-12 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-13 00:00:00');
+
+
+drop table if exists test_3;
+create table test_3 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_3 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-07 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-08 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-09 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-04 00:00:00', '2017-01-10 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-05 00:00:00', '2017-01-11 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-12 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-13 00:00:00');
+</code></pre>
+
+<p><strong>Update:</strong></p>
+
+<p>A possible solution would be:</p>
+
+<pre><code>select distinct 
+(select max(id) from test_1 where id &lt; 7 order by starts_on, id) as prev, 
+(select min(id) from test_1 where id &gt; 7 order by starts_on, id) as next 
+from test_1
+</code></pre>
+",,,2017-02-03T11:06:17+00:00,3,True
+42022770,1230358,sql,Standard SQL and previous and next row values,"<p>I know this is a common question and I've done some reading on it. What I want is a performant way (best in one query) for receiving the the next and previous row id, based on a reference row id. I've found many questions and answers here at stackoverflow and one valuable thread with a really nice answer <a href=""https://stackoverflow.com/a/15992856/1230358"">https://stackoverflow.com/a/15992856/1230358</a>. What I have is based on the answers in this thread.</p>
+
+<pre><code>select id from test_1
+where ( 
+    id = IFNULL((select max(id) from test_1 where id &lt; 2 order by starts_on, id), 0)
+    or id = IFNULL((select min(id) from test_1 where id &gt; 2 order by starts_on, id), 0) 
+)
+</code></pre>
+
+<p>Querying with the reference <code>id=2</code> returns exactlythe result that I need (first row is the previous id, second row is the next id):</p>
+
+<pre><code>id
+--
+1
+--
+3
+</code></pre>
+
+<p>The problem is, if querying the edge cases <code>id=1</code> or <code>id=max(id)</code>, the results miss either the previous
+or next row id, because there simply is no no previous or next row. The result has now only one row and it's not clear if this is either the previous our next row id.</p>
+
+<pre><code>id
+--
+2       (next value)
+</code></pre>
+
+<p>However, i need a result like this</p>
+
+<pre><code>id
+--
+NULL    (or 0 - previous value)
+--
+2       (next value)
+</code></pre>
+
+<p>What I need is a solution based or similar in performance to the upper query, that fills the non-existant edgecases ids preferable with a NULL value (or 0). As I'm cunsuming the results with a webframework supporting different dbms, it should work with <strong><code>mysql</code>, <code>sqlite</code>, and <code>postgres</code></strong>. It should work with the following schema:</p>
+
+<pre><code>drop table if exists test_1;
+create table test_1 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+
+drop table if exists test_2;
+create table test_2 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_2 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-07 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-08 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-03 00:00:00', '2017-01-09 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-04 00:00:00', '2017-01-10 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-05 00:00:00', '2017-01-11 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-06 00:00:00', '2017-01-12 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-13 00:00:00');
+
+
+drop table if exists test_3;
+create table test_3 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_3 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-07 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-08 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-09 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-04 00:00:00', '2017-01-10 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-05 00:00:00', '2017-01-11 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-12 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-13 00:00:00');
+</code></pre>
+
+<p><strong>Update:</strong></p>
+
+<p>A possible solution would be:</p>
+
+<pre><code>select distinct 
+(select max(id) from test_1 where id &lt; 7 order by starts_on, id) as prev, 
+(select min(id) from test_1 where id &gt; 7 order by starts_on, id) as next 
+from test_1
+</code></pre>
+",,,2017-02-03T11:06:17+00:00,3,True
+42022770,1230358,postgresql,Standard SQL and previous and next row values,"<p>I know this is a common question and I've done some reading on it. What I want is a performant way (best in one query) for receiving the the next and previous row id, based on a reference row id. I've found many questions and answers here at stackoverflow and one valuable thread with a really nice answer <a href=""https://stackoverflow.com/a/15992856/1230358"">https://stackoverflow.com/a/15992856/1230358</a>. What I have is based on the answers in this thread.</p>
+
+<pre><code>select id from test_1
+where ( 
+    id = IFNULL((select max(id) from test_1 where id &lt; 2 order by starts_on, id), 0)
+    or id = IFNULL((select min(id) from test_1 where id &gt; 2 order by starts_on, id), 0) 
+)
+</code></pre>
+
+<p>Querying with the reference <code>id=2</code> returns exactlythe result that I need (first row is the previous id, second row is the next id):</p>
+
+<pre><code>id
+--
+1
+--
+3
+</code></pre>
+
+<p>The problem is, if querying the edge cases <code>id=1</code> or <code>id=max(id)</code>, the results miss either the previous
+or next row id, because there simply is no no previous or next row. The result has now only one row and it's not clear if this is either the previous our next row id.</p>
+
+<pre><code>id
+--
+2       (next value)
+</code></pre>
+
+<p>However, i need a result like this</p>
+
+<pre><code>id
+--
+NULL    (or 0 - previous value)
+--
+2       (next value)
+</code></pre>
+
+<p>What I need is a solution based or similar in performance to the upper query, that fills the non-existant edgecases ids preferable with a NULL value (or 0). As I'm cunsuming the results with a webframework supporting different dbms, it should work with <strong><code>mysql</code>, <code>sqlite</code>, and <code>postgres</code></strong>. It should work with the following schema:</p>
+
+<pre><code>drop table if exists test_1;
+create table test_1 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+
+drop table if exists test_2;
+create table test_2 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_2 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-07 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-08 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-03 00:00:00', '2017-01-09 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-04 00:00:00', '2017-01-10 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-05 00:00:00', '2017-01-11 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-06 00:00:00', '2017-01-12 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-13 00:00:00');
+
+
+drop table if exists test_3;
+create table test_3 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_3 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-07 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-08 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-09 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-04 00:00:00', '2017-01-10 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-05 00:00:00', '2017-01-11 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-12 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-13 00:00:00');
+</code></pre>
+
+<p><strong>Update:</strong></p>
+
+<p>A possible solution would be:</p>
+
+<pre><code>select distinct 
+(select max(id) from test_1 where id &lt; 7 order by starts_on, id) as prev, 
+(select min(id) from test_1 where id &gt; 7 order by starts_on, id) as next 
+from test_1
+</code></pre>
+",,,2017-02-03T11:06:17+00:00,3,True
+42022770,1230358,sqlite,Standard SQL and previous and next row values,"<p>I know this is a common question and I've done some reading on it. What I want is a performant way (best in one query) for receiving the the next and previous row id, based on a reference row id. I've found many questions and answers here at stackoverflow and one valuable thread with a really nice answer <a href=""https://stackoverflow.com/a/15992856/1230358"">https://stackoverflow.com/a/15992856/1230358</a>. What I have is based on the answers in this thread.</p>
+
+<pre><code>select id from test_1
+where ( 
+    id = IFNULL((select max(id) from test_1 where id &lt; 2 order by starts_on, id), 0)
+    or id = IFNULL((select min(id) from test_1 where id &gt; 2 order by starts_on, id), 0) 
+)
+</code></pre>
+
+<p>Querying with the reference <code>id=2</code> returns exactlythe result that I need (first row is the previous id, second row is the next id):</p>
+
+<pre><code>id
+--
+1
+--
+3
+</code></pre>
+
+<p>The problem is, if querying the edge cases <code>id=1</code> or <code>id=max(id)</code>, the results miss either the previous
+or next row id, because there simply is no no previous or next row. The result has now only one row and it's not clear if this is either the previous our next row id.</p>
+
+<pre><code>id
+--
+2       (next value)
+</code></pre>
+
+<p>However, i need a result like this</p>
+
+<pre><code>id
+--
+NULL    (or 0 - previous value)
+--
+2       (next value)
+</code></pre>
+
+<p>What I need is a solution based or similar in performance to the upper query, that fills the non-existant edgecases ids preferable with a NULL value (or 0). As I'm cunsuming the results with a webframework supporting different dbms, it should work with <strong><code>mysql</code>, <code>sqlite</code>, and <code>postgres</code></strong>. It should work with the following schema:</p>
+
+<pre><code>drop table if exists test_1;
+create table test_1 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+insert into test_1 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-01 00:00:00');
+
+drop table if exists test_2;
+create table test_2 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_2 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-07 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-08 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-03 00:00:00', '2017-01-09 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-04 00:00:00', '2017-01-10 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-05 00:00:00', '2017-01-11 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-06 00:00:00', '2017-01-12 00:00:00');
+insert into test_2 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-13 00:00:00');
+
+
+drop table if exists test_3;
+create table test_3 (id INTEGER PRIMARY KEY,starts_on DATETIME, ends_on DATETIME);
+insert into test_3 (starts_on, ends_on) Values ('2017-01-01 00:00:00', '2017-01-07 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-08 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-02 00:00:00', '2017-01-09 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-04 00:00:00', '2017-01-10 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-05 00:00:00', '2017-01-11 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-12 00:00:00');
+insert into test_3 (starts_on, ends_on) Values ('2017-01-07 00:00:00', '2017-01-13 00:00:00');
+</code></pre>
+
+<p><strong>Update:</strong></p>
+
+<p>A possible solution would be:</p>
+
+<pre><code>select distinct 
+(select max(id) from test_1 where id &lt; 7 order by starts_on, id) as prev, 
+(select min(id) from test_1 where id &gt; 7 order by starts_on, id) as next 
+from test_1
+</code></pre>
+",,,2017-02-03T11:06:17+00:00,3,True
+39621987,,mysql,The claim that subqueries can only return single columns,"<p>I am going through Ben Fortas ""Teach yourself SQL in 10 minutes"" book and it has grey box warning: ""Subquery SELECT statements can only retrieve a single column. Attempting to return multiple columns will return an error.""</p>
+
+<p>Is this, in fact, commonly true for an RDMS? (Note that if <a href=""https://stackoverflow.com/a/584442/334911"">this answer</a> is correct then it is not true for all databases).</p>
+
+<p>And why in the world would it ever be true? It seems like such a weird language restriction. Queries are expensive to compute, and the work to retrieve 3 columns is not particularly computationally different than the work to retrieve 1 (unless your RDMS stores your tables grouped by columns instead of grouped by rows).</p>
+",,,2016-09-21T16:33:19+00:00,2,True
+39621987,,sql,The claim that subqueries can only return single columns,"<p>I am going through Ben Fortas ""Teach yourself SQL in 10 minutes"" book and it has grey box warning: ""Subquery SELECT statements can only retrieve a single column. Attempting to return multiple columns will return an error.""</p>
+
+<p>Is this, in fact, commonly true for an RDMS? (Note that if <a href=""https://stackoverflow.com/a/584442/334911"">this answer</a> is correct then it is not true for all databases).</p>
+
+<p>And why in the world would it ever be true? It seems like such a weird language restriction. Queries are expensive to compute, and the work to retrieve 3 columns is not particularly computationally different than the work to retrieve 1 (unless your RDMS stores your tables grouped by columns instead of grouped by rows).</p>
+",,,2016-09-21T16:33:19+00:00,2,True
+39621987,,postgresql,The claim that subqueries can only return single columns,"<p>I am going through Ben Fortas ""Teach yourself SQL in 10 minutes"" book and it has grey box warning: ""Subquery SELECT statements can only retrieve a single column. Attempting to return multiple columns will return an error.""</p>
+
+<p>Is this, in fact, commonly true for an RDMS? (Note that if <a href=""https://stackoverflow.com/a/584442/334911"">this answer</a> is correct then it is not true for all databases).</p>
+
+<p>And why in the world would it ever be true? It seems like such a weird language restriction. Queries are expensive to compute, and the work to retrieve 3 columns is not particularly computationally different than the work to retrieve 1 (unless your RDMS stores your tables grouped by columns instead of grouped by rows).</p>
+",,,2016-09-21T16:33:19+00:00,2,True
+39621987,,sqlite,The claim that subqueries can only return single columns,"<p>I am going through Ben Fortas ""Teach yourself SQL in 10 minutes"" book and it has grey box warning: ""Subquery SELECT statements can only retrieve a single column. Attempting to return multiple columns will return an error.""</p>
+
+<p>Is this, in fact, commonly true for an RDMS? (Note that if <a href=""https://stackoverflow.com/a/584442/334911"">this answer</a> is correct then it is not true for all databases).</p>
+
+<p>And why in the world would it ever be true? It seems like such a weird language restriction. Queries are expensive to compute, and the work to retrieve 3 columns is not particularly computationally different than the work to retrieve 1 (unless your RDMS stores your tables grouped by columns instead of grouped by rows).</p>
+",,,2016-09-21T16:33:19+00:00,2,True
+38363204,5987171,mysql,how to get name of guest who have bought two things,"<p>how should i get the data from the table where the guest has bought two things ...</p>
+
+<pre><code>     select TA.orderid as ORDERID,custid,name,description,ITEMID from 
+
+ (
+ select T3.custid as CUSTID,orderid,name from 
+  (
+ select orderid,custid from orders
+ ) as T3
+
+ inner join 
+(select custid, name from customers)as T4
+
+ on T3.custid=T4.custid
+  order by name
+)as TA
+
+inner join 
+
+( 
+ select T1.itemID as ITEMID, OrderID,description from 
+ (
+select itemID,OrderID from ItemsOrdered
+)as T1
+
+inner join 
+(
+select itemID, description from Items
+)as    T2
+ on T1.itemID=T2.itemID
+
+)as RA
+
+on TA.orderid=RA.orderid
+</code></pre>
+
+<p>what i am trying to achieve is to get the list of customers who have bought exactly two items.</p>
+
+<p><a href=""https://i.sstatic.net/5k2ji.png"" rel=""nofollow noreferrer""><img src=""https://i.sstatic.net/5k2ji.png"" alt=""enter image description here""></a></p>
+
+<p>a nudge to the right direction would be really helpfull</p>
+",,,2016-07-13T23:15:23+00:00,2,True
+38363204,5987171,sql,how to get name of guest who have bought two things,"<p>how should i get the data from the table where the guest has bought two things ...</p>
+
+<pre><code>     select TA.orderid as ORDERID,custid,name,description,ITEMID from 
+
+ (
+ select T3.custid as CUSTID,orderid,name from 
+  (
+ select orderid,custid from orders
+ ) as T3
+
+ inner join 
+(select custid, name from customers)as T4
+
+ on T3.custid=T4.custid
+  order by name
+)as TA
+
+inner join 
+
+( 
+ select T1.itemID as ITEMID, OrderID,description from 
+ (
+select itemID,OrderID from ItemsOrdered
+)as T1
+
+inner join 
+(
+select itemID, description from Items
+)as    T2
+ on T1.itemID=T2.itemID
+
+)as RA
+
+on TA.orderid=RA.orderid
+</code></pre>
+
+<p>what i am trying to achieve is to get the list of customers who have bought exactly two items.</p>
+
+<p><a href=""https://i.sstatic.net/5k2ji.png"" rel=""nofollow noreferrer""><img src=""https://i.sstatic.net/5k2ji.png"" alt=""enter image description here""></a></p>
+
+<p>a nudge to the right direction would be really helpfull</p>
+",,,2016-07-13T23:15:23+00:00,2,True
+38363204,5987171,postgresql,how to get name of guest who have bought two things,"<p>how should i get the data from the table where the guest has bought two things ...</p>
+
+<pre><code>     select TA.orderid as ORDERID,custid,name,description,ITEMID from 
+
+ (
+ select T3.custid as CUSTID,orderid,name from 
+  (
+ select orderid,custid from orders
+ ) as T3
+
+ inner join 
+(select custid, name from customers)as T4
+
+ on T3.custid=T4.custid
+  order by name
+)as TA
+
+inner join 
+
+( 
+ select T1.itemID as ITEMID, OrderID,description from 
+ (
+select itemID,OrderID from ItemsOrdered
+)as T1
+
+inner join 
+(
+select itemID, description from Items
+)as    T2
+ on T1.itemID=T2.itemID
+
+)as RA
+
+on TA.orderid=RA.orderid
+</code></pre>
+
+<p>what i am trying to achieve is to get the list of customers who have bought exactly two items.</p>
+
+<p><a href=""https://i.sstatic.net/5k2ji.png"" rel=""nofollow noreferrer""><img src=""https://i.sstatic.net/5k2ji.png"" alt=""enter image description here""></a></p>
+
+<p>a nudge to the right direction would be really helpfull</p>
+",,,2016-07-13T23:15:23+00:00,2,True
+38363204,5987171,sqlite,how to get name of guest who have bought two things,"<p>how should i get the data from the table where the guest has bought two things ...</p>
+
+<pre><code>     select TA.orderid as ORDERID,custid,name,description,ITEMID from 
+
+ (
+ select T3.custid as CUSTID,orderid,name from 
+  (
+ select orderid,custid from orders
+ ) as T3
+
+ inner join 
+(select custid, name from customers)as T4
+
+ on T3.custid=T4.custid
+  order by name
+)as TA
+
+inner join 
+
+( 
+ select T1.itemID as ITEMID, OrderID,description from 
+ (
+select itemID,OrderID from ItemsOrdered
+)as T1
+
+inner join 
+(
+select itemID, description from Items
+)as    T2
+ on T1.itemID=T2.itemID
+
+)as RA
+
+on TA.orderid=RA.orderid
+</code></pre>
+
+<p>what i am trying to achieve is to get the list of customers who have bought exactly two items.</p>
+
+<p><a href=""https://i.sstatic.net/5k2ji.png"" rel=""nofollow noreferrer""><img src=""https://i.sstatic.net/5k2ji.png"" alt=""enter image description here""></a></p>
+
+<p>a nudge to the right direction would be really helpfull</p>
+",,,2016-07-13T23:15:23+00:00,2,True
+34717530,5101747,mysql,sql select column via column number/index/position instead of column name,"<p>How to query select column via column number/index/position instead of column name?</p>
+
+<p>So far this does not work:</p>
+
+<pre><code>SELECT 1,2,3,4,5,6,7 from table_1
+Union 
+SELECT 1,2,3,4,5,6,7 from table_2
+</code></pre>
+",,,2016-01-11T09:03:02+00:00,4,True
+34717530,5101747,sql,sql select column via column number/index/position instead of column name,"<p>How to query select column via column number/index/position instead of column name?</p>
+
+<p>So far this does not work:</p>
+
+<pre><code>SELECT 1,2,3,4,5,6,7 from table_1
+Union 
+SELECT 1,2,3,4,5,6,7 from table_2
+</code></pre>
+",,,2016-01-11T09:03:02+00:00,4,True
+34717530,5101747,postgresql,sql select column via column number/index/position instead of column name,"<p>How to query select column via column number/index/position instead of column name?</p>
+
+<p>So far this does not work:</p>
+
+<pre><code>SELECT 1,2,3,4,5,6,7 from table_1
+Union 
+SELECT 1,2,3,4,5,6,7 from table_2
+</code></pre>
+",,,2016-01-11T09:03:02+00:00,4,True
+34717530,5101747,sqlite,sql select column via column number/index/position instead of column name,"<p>How to query select column via column number/index/position instead of column name?</p>
+
+<p>So far this does not work:</p>
+
+<pre><code>SELECT 1,2,3,4,5,6,7 from table_1
+Union 
+SELECT 1,2,3,4,5,6,7 from table_2
+</code></pre>
+",,,2016-01-11T09:03:02+00:00,4,True
+34581150,2544036,mysql,Translate query with GROUP BY from MySQL to Postgres and SQLite,"<p>In MySQL I use a lot of constructs which look like this:</p>
+
+<pre><code>LEFT JOIN(
+    SELECT field_one, field_two, field_three FROM (
+        SELECT field_one, field_two, field_three FROM table_one
+        ORDER BY field_three 
+    ) o GROUP BY field_one
+) abc ON cur_table.some_field = abc.field_one
+</code></pre>
+
+<p>I use it, because it helps me to implement a usual task - to order some data before grouping. Now I wonder how to migrate this SQL construct from MySQL to <strong>SQLite</strong> and <strong>PostgreSQL</strong>.</p>
+",,,2016-01-03T20:19:31+00:00,1,True
+34581150,2544036,sql,Translate query with GROUP BY from MySQL to Postgres and SQLite,"<p>In MySQL I use a lot of constructs which look like this:</p>
+
+<pre><code>LEFT JOIN(
+    SELECT field_one, field_two, field_three FROM (
+        SELECT field_one, field_two, field_three FROM table_one
+        ORDER BY field_three 
+    ) o GROUP BY field_one
+) abc ON cur_table.some_field = abc.field_one
+</code></pre>
+
+<p>I use it, because it helps me to implement a usual task - to order some data before grouping. Now I wonder how to migrate this SQL construct from MySQL to <strong>SQLite</strong> and <strong>PostgreSQL</strong>.</p>
+",,,2016-01-03T20:19:31+00:00,1,True
+34581150,2544036,postgresql,Translate query with GROUP BY from MySQL to Postgres and SQLite,"<p>In MySQL I use a lot of constructs which look like this:</p>
+
+<pre><code>LEFT JOIN(
+    SELECT field_one, field_two, field_three FROM (
+        SELECT field_one, field_two, field_three FROM table_one
+        ORDER BY field_three 
+    ) o GROUP BY field_one
+) abc ON cur_table.some_field = abc.field_one
+</code></pre>
+
+<p>I use it, because it helps me to implement a usual task - to order some data before grouping. Now I wonder how to migrate this SQL construct from MySQL to <strong>SQLite</strong> and <strong>PostgreSQL</strong>.</p>
+",,,2016-01-03T20:19:31+00:00,1,True
+34581150,2544036,sqlite,Translate query with GROUP BY from MySQL to Postgres and SQLite,"<p>In MySQL I use a lot of constructs which look like this:</p>
+
+<pre><code>LEFT JOIN(
+    SELECT field_one, field_two, field_three FROM (
+        SELECT field_one, field_two, field_three FROM table_one
+        ORDER BY field_three 
+    ) o GROUP BY field_one
+) abc ON cur_table.some_field = abc.field_one
+</code></pre>
+
+<p>I use it, because it helps me to implement a usual task - to order some data before grouping. Now I wonder how to migrate this SQL construct from MySQL to <strong>SQLite</strong> and <strong>PostgreSQL</strong>.</p>
+",,,2016-01-03T20:19:31+00:00,1,True
+32923762,4254346,mysql,how to write COUNT(DISTINCT()) query?,"<p>Please help me with this query.</p>
+
+<p>I have a table student which looks like:</p>
+
+<pre><code>*id, name, surname, year, course*
+1, John, Johnson, 3, Economy
+2, Lara, Croft, 2, Biology
+3, Mark, Jones, 3, Economy
+4, Jim, Smith, 1, IT
+5, Sarah, Kennedy, 1, IT
+6, Matt, Damon, 3, Economy
+</code></pre>
+
+<p>And would like to get as a Result Set all courses with number of students attending, like:</p>
+
+<pre><code>*course, count*
+Economy, 3
+IT, 2
+Biology, 1
+</code></pre>
+",,,2015-10-03T14:38:21+00:00,1,True
+32923762,4254346,sql,how to write COUNT(DISTINCT()) query?,"<p>Please help me with this query.</p>
+
+<p>I have a table student which looks like:</p>
+
+<pre><code>*id, name, surname, year, course*
+1, John, Johnson, 3, Economy
+2, Lara, Croft, 2, Biology
+3, Mark, Jones, 3, Economy
+4, Jim, Smith, 1, IT
+5, Sarah, Kennedy, 1, IT
+6, Matt, Damon, 3, Economy
+</code></pre>
+
+<p>And would like to get as a Result Set all courses with number of students attending, like:</p>
+
+<pre><code>*course, count*
+Economy, 3
+IT, 2
+Biology, 1
+</code></pre>
+",,,2015-10-03T14:38:21+00:00,1,True
+32923762,4254346,postgresql,how to write COUNT(DISTINCT()) query?,"<p>Please help me with this query.</p>
+
+<p>I have a table student which looks like:</p>
+
+<pre><code>*id, name, surname, year, course*
+1, John, Johnson, 3, Economy
+2, Lara, Croft, 2, Biology
+3, Mark, Jones, 3, Economy
+4, Jim, Smith, 1, IT
+5, Sarah, Kennedy, 1, IT
+6, Matt, Damon, 3, Economy
+</code></pre>
+
+<p>And would like to get as a Result Set all courses with number of students attending, like:</p>
+
+<pre><code>*course, count*
+Economy, 3
+IT, 2
+Biology, 1
+</code></pre>
+",,,2015-10-03T14:38:21+00:00,1,True
+32923762,4254346,sqlite,how to write COUNT(DISTINCT()) query?,"<p>Please help me with this query.</p>
+
+<p>I have a table student which looks like:</p>
+
+<pre><code>*id, name, surname, year, course*
+1, John, Johnson, 3, Economy
+2, Lara, Croft, 2, Biology
+3, Mark, Jones, 3, Economy
+4, Jim, Smith, 1, IT
+5, Sarah, Kennedy, 1, IT
+6, Matt, Damon, 3, Economy
+</code></pre>
+
+<p>And would like to get as a Result Set all courses with number of students attending, like:</p>
+
+<pre><code>*course, count*
+Economy, 3
+IT, 2
+Biology, 1
+</code></pre>
+",,,2015-10-03T14:38:21+00:00,1,True
+30830109,149741,mysql,"SQL query for run-length, or consecutive identical value encoding","<p>My goal is to take a set of data that is ordered by <code>id</code> and return a resultset that indicates the number of consecutive rows where the <code>val</code> column is identical. E.g. given this data:</p>
+
+<pre><code>| id | val |
+|  1 |  33 |
+|  2 |  33 |
+|  3 |  44 |
+|  4 |  28 |
+|  5 |  44 |
+|  6 |  44 |
+</code></pre>
+
+<p>I would like to see this result:</p>
+
+<pre><code>| id | val | run_length |
+| 1  | 33  | 2          |
+| 3  | 44  | 1          |
+| 4  | 28  | 1          |
+| 5  | 44  | 2          |
+</code></pre>
+
+<p>The id column in the resultset is optional. In fact, if it makes it significantly harder, then just leave that column out of the result. I sort of like having it because it ""pins"" the resultset to a particular location in the table. </p>
+
+<p>I am primarily interested in the result in free database engines. My order of preference for a solution is:</p>
+
+<ol>
+<li>SQLite </li>
+<li>Postgres  </li>
+<li>MySQL  </li>
+<li>Oracle  </li>
+<li>SQL Server  </li>
+<li>Sybase</li>
+</ol>
+",,,2015-06-14T13:45:11+00:00,2,True
+30830109,149741,sql,"SQL query for run-length, or consecutive identical value encoding","<p>My goal is to take a set of data that is ordered by <code>id</code> and return a resultset that indicates the number of consecutive rows where the <code>val</code> column is identical. E.g. given this data:</p>
+
+<pre><code>| id | val |
+|  1 |  33 |
+|  2 |  33 |
+|  3 |  44 |
+|  4 |  28 |
+|  5 |  44 |
+|  6 |  44 |
+</code></pre>
+
+<p>I would like to see this result:</p>
+
+<pre><code>| id | val | run_length |
+| 1  | 33  | 2          |
+| 3  | 44  | 1          |
+| 4  | 28  | 1          |
+| 5  | 44  | 2          |
+</code></pre>
+
+<p>The id column in the resultset is optional. In fact, if it makes it significantly harder, then just leave that column out of the result. I sort of like having it because it ""pins"" the resultset to a particular location in the table. </p>
+
+<p>I am primarily interested in the result in free database engines. My order of preference for a solution is:</p>
+
+<ol>
+<li>SQLite </li>
+<li>Postgres  </li>
+<li>MySQL  </li>
+<li>Oracle  </li>
+<li>SQL Server  </li>
+<li>Sybase</li>
+</ol>
+",,,2015-06-14T13:45:11+00:00,2,True
+30830109,149741,postgresql,"SQL query for run-length, or consecutive identical value encoding","<p>My goal is to take a set of data that is ordered by <code>id</code> and return a resultset that indicates the number of consecutive rows where the <code>val</code> column is identical. E.g. given this data:</p>
+
+<pre><code>| id | val |
+|  1 |  33 |
+|  2 |  33 |
+|  3 |  44 |
+|  4 |  28 |
+|  5 |  44 |
+|  6 |  44 |
+</code></pre>
+
+<p>I would like to see this result:</p>
+
+<pre><code>| id | val | run_length |
+| 1  | 33  | 2          |
+| 3  | 44  | 1          |
+| 4  | 28  | 1          |
+| 5  | 44  | 2          |
+</code></pre>
+
+<p>The id column in the resultset is optional. In fact, if it makes it significantly harder, then just leave that column out of the result. I sort of like having it because it ""pins"" the resultset to a particular location in the table. </p>
+
+<p>I am primarily interested in the result in free database engines. My order of preference for a solution is:</p>
+
+<ol>
+<li>SQLite </li>
+<li>Postgres  </li>
+<li>MySQL  </li>
+<li>Oracle  </li>
+<li>SQL Server  </li>
+<li>Sybase</li>
+</ol>
+",,,2015-06-14T13:45:11+00:00,2,True
+30830109,149741,sqlite,"SQL query for run-length, or consecutive identical value encoding","<p>My goal is to take a set of data that is ordered by <code>id</code> and return a resultset that indicates the number of consecutive rows where the <code>val</code> column is identical. E.g. given this data:</p>
+
+<pre><code>| id | val |
+|  1 |  33 |
+|  2 |  33 |
+|  3 |  44 |
+|  4 |  28 |
+|  5 |  44 |
+|  6 |  44 |
+</code></pre>
+
+<p>I would like to see this result:</p>
+
+<pre><code>| id | val | run_length |
+| 1  | 33  | 2          |
+| 3  | 44  | 1          |
+| 4  | 28  | 1          |
+| 5  | 44  | 2          |
+</code></pre>
+
+<p>The id column in the resultset is optional. In fact, if it makes it significantly harder, then just leave that column out of the result. I sort of like having it because it ""pins"" the resultset to a particular location in the table. </p>
+
+<p>I am primarily interested in the result in free database engines. My order of preference for a solution is:</p>
+
+<ol>
+<li>SQLite </li>
+<li>Postgres  </li>
+<li>MySQL  </li>
+<li>Oracle  </li>
+<li>SQL Server  </li>
+<li>Sybase</li>
+</ol>
+",,,2015-06-14T13:45:11+00:00,2,True
+30608899,3204212,mysql,"Selecting many items, which themselves have many items, in a single query?","<p>I have an database representing a book collection. It looks like this:</p>
+
+<h1>books table</h1>
+
+<pre><code>id    |    title            |    year    |    author_id
+--------------------------------------------------------
+1       How to Read              1985            7
+2       A Dream of Spring        2041            14
+3       Tour Guide               2010            40
+</code></pre>
+
+<h1>tags table</h1>
+
+<pre><code>id    |    tagname
+-------------------
+1        nonfiction
+2        fiction
+3        poetry
+4        sci-fi
+5        magical realism
+6        detective
+</code></pre>
+
+<h1>books_tags_links table</h1>
+
+<pre><code>book    |    tag
+------------------
+8            4
+10           1
+10           4
+10           5
+8            2
+</code></pre>
+
+<p>There is a one-to-many relationship between books and tags: a book can have multiple tags, like 'fiction, detective, sci-fi'.</p>
+
+<p>What I'd like to know is: is it possible for me to select all books, <em>and</em> all tags associated with each book, in a single query? I don't know what the result would look like -- a jagged array, I suppose, each book having a different number of tags?</p>
+
+<p>My ultimate aim is to output a HTML table where each row is a book, with the <code>tr</code> element having a <code>data-tag</code> property for each tag that book's been given, so that I can use JavaScript to hide or show books with some combination of tags. Thus far I can only imagine how to do it by issuing a separate <code>select tags</code> query for every book in the list, but that could mean making thousands of database requests, and I want to know if there's a smarter way to do it.</p>
+
+<p>I am using SQLite at the moment, but if there's a solution exclusive to Postgres or MySQL I'd still be interested in learning about it.</p>
+",,,2015-06-03T00:35:59+00:00,2,True
+30608899,3204212,sql,"Selecting many items, which themselves have many items, in a single query?","<p>I have an database representing a book collection. It looks like this:</p>
+
+<h1>books table</h1>
+
+<pre><code>id    |    title            |    year    |    author_id
+--------------------------------------------------------
+1       How to Read              1985            7
+2       A Dream of Spring        2041            14
+3       Tour Guide               2010            40
+</code></pre>
+
+<h1>tags table</h1>
+
+<pre><code>id    |    tagname
+-------------------
+1        nonfiction
+2        fiction
+3        poetry
+4        sci-fi
+5        magical realism
+6        detective
+</code></pre>
+
+<h1>books_tags_links table</h1>
+
+<pre><code>book    |    tag
+------------------
+8            4
+10           1
+10           4
+10           5
+8            2
+</code></pre>
+
+<p>There is a one-to-many relationship between books and tags: a book can have multiple tags, like 'fiction, detective, sci-fi'.</p>
+
+<p>What I'd like to know is: is it possible for me to select all books, <em>and</em> all tags associated with each book, in a single query? I don't know what the result would look like -- a jagged array, I suppose, each book having a different number of tags?</p>
+
+<p>My ultimate aim is to output a HTML table where each row is a book, with the <code>tr</code> element having a <code>data-tag</code> property for each tag that book's been given, so that I can use JavaScript to hide or show books with some combination of tags. Thus far I can only imagine how to do it by issuing a separate <code>select tags</code> query for every book in the list, but that could mean making thousands of database requests, and I want to know if there's a smarter way to do it.</p>
+
+<p>I am using SQLite at the moment, but if there's a solution exclusive to Postgres or MySQL I'd still be interested in learning about it.</p>
+",,,2015-06-03T00:35:59+00:00,2,True
+30608899,3204212,postgresql,"Selecting many items, which themselves have many items, in a single query?","<p>I have an database representing a book collection. It looks like this:</p>
+
+<h1>books table</h1>
+
+<pre><code>id    |    title            |    year    |    author_id
+--------------------------------------------------------
+1       How to Read              1985            7
+2       A Dream of Spring        2041            14
+3       Tour Guide               2010            40
+</code></pre>
+
+<h1>tags table</h1>
+
+<pre><code>id    |    tagname
+-------------------
+1        nonfiction
+2        fiction
+3        poetry
+4        sci-fi
+5        magical realism
+6        detective
+</code></pre>
+
+<h1>books_tags_links table</h1>
+
+<pre><code>book    |    tag
+------------------
+8            4
+10           1
+10           4
+10           5
+8            2
+</code></pre>
+
+<p>There is a one-to-many relationship between books and tags: a book can have multiple tags, like 'fiction, detective, sci-fi'.</p>
+
+<p>What I'd like to know is: is it possible for me to select all books, <em>and</em> all tags associated with each book, in a single query? I don't know what the result would look like -- a jagged array, I suppose, each book having a different number of tags?</p>
+
+<p>My ultimate aim is to output a HTML table where each row is a book, with the <code>tr</code> element having a <code>data-tag</code> property for each tag that book's been given, so that I can use JavaScript to hide or show books with some combination of tags. Thus far I can only imagine how to do it by issuing a separate <code>select tags</code> query for every book in the list, but that could mean making thousands of database requests, and I want to know if there's a smarter way to do it.</p>
+
+<p>I am using SQLite at the moment, but if there's a solution exclusive to Postgres or MySQL I'd still be interested in learning about it.</p>
+",,,2015-06-03T00:35:59+00:00,2,True
+30608899,3204212,sqlite,"Selecting many items, which themselves have many items, in a single query?","<p>I have an database representing a book collection. It looks like this:</p>
+
+<h1>books table</h1>
+
+<pre><code>id    |    title            |    year    |    author_id
+--------------------------------------------------------
+1       How to Read              1985            7
+2       A Dream of Spring        2041            14
+3       Tour Guide               2010            40
+</code></pre>
+
+<h1>tags table</h1>
+
+<pre><code>id    |    tagname
+-------------------
+1        nonfiction
+2        fiction
+3        poetry
+4        sci-fi
+5        magical realism
+6        detective
+</code></pre>
+
+<h1>books_tags_links table</h1>
+
+<pre><code>book    |    tag
+------------------
+8            4
+10           1
+10           4
+10           5
+8            2
+</code></pre>
+
+<p>There is a one-to-many relationship between books and tags: a book can have multiple tags, like 'fiction, detective, sci-fi'.</p>
+
+<p>What I'd like to know is: is it possible for me to select all books, <em>and</em> all tags associated with each book, in a single query? I don't know what the result would look like -- a jagged array, I suppose, each book having a different number of tags?</p>
+
+<p>My ultimate aim is to output a HTML table where each row is a book, with the <code>tr</code> element having a <code>data-tag</code> property for each tag that book's been given, so that I can use JavaScript to hide or show books with some combination of tags. Thus far I can only imagine how to do it by issuing a separate <code>select tags</code> query for every book in the list, but that could mean making thousands of database requests, and I want to know if there's a smarter way to do it.</p>
+
+<p>I am using SQLite at the moment, but if there's a solution exclusive to Postgres or MySQL I'd still be interested in learning about it.</p>
+",,,2015-06-03T00:35:59+00:00,2,True
+29289797,3888450,mysql,Notification for changed SQL query result,"<p>Given a database with multiple tables. I want to have a mechanism that notifies me, when the result of a given query changes.</p>
+
+<p>For example, I have the following two tables</p>
+
+<pre><code>CREATE TABLE employee (
+    e_id int,
+    firstname varchar(255),
+    lastname varchar(255),
+    d_id int
+);
+
+CREATE TABLE department (
+    d_id int,
+    name varchar(255)
+);
+</code></pre>
+
+<p>and the query</p>
+
+<pre><code>SELECT firstname
+FROM employee
+JOIN department
+ON employee.d_id = department.d_id
+WHERE department.name = ""financial"";
+</code></pre>
+
+<p>I want to be notified, when I execute an insert/update/delete command on either <code>employee</code> or <code>department</code>, but only if the command execution changes the result of the query. An operation that does not change the result of the query, e.g. an update of the column <code>lastname</code> should not lead to a notification.</p>
+
+<p>I would like a solution that is independent of the DBMS, but if you know a solution for a specific DBMS don't hesitate to share it :-) Especially, I am interested in postgresql, mysql and sqlite.</p>
+
+<p>It would be great if the solution would also work for more complex queries, e.g. a query with subqueries and/or aggregate functions.</p>
+
+<p>Another great feature would be prepared statements. For example, when I alter the given query by replacing <code>""financial""</code> by <code>:department_name</code>, I would get a parameterized notification with the department name as parameter.</p>
+
+<p>I know about the trigger mechanism, however it does not seem to solve the problem.</p>
+",,,2015-03-26T22:07:53+00:00,1,True
+29289797,3888450,sql,Notification for changed SQL query result,"<p>Given a database with multiple tables. I want to have a mechanism that notifies me, when the result of a given query changes.</p>
+
+<p>For example, I have the following two tables</p>
+
+<pre><code>CREATE TABLE employee (
+    e_id int,
+    firstname varchar(255),
+    lastname varchar(255),
+    d_id int
+);
+
+CREATE TABLE department (
+    d_id int,
+    name varchar(255)
+);
+</code></pre>
+
+<p>and the query</p>
+
+<pre><code>SELECT firstname
+FROM employee
+JOIN department
+ON employee.d_id = department.d_id
+WHERE department.name = ""financial"";
+</code></pre>
+
+<p>I want to be notified, when I execute an insert/update/delete command on either <code>employee</code> or <code>department</code>, but only if the command execution changes the result of the query. An operation that does not change the result of the query, e.g. an update of the column <code>lastname</code> should not lead to a notification.</p>
+
+<p>I would like a solution that is independent of the DBMS, but if you know a solution for a specific DBMS don't hesitate to share it :-) Especially, I am interested in postgresql, mysql and sqlite.</p>
+
+<p>It would be great if the solution would also work for more complex queries, e.g. a query with subqueries and/or aggregate functions.</p>
+
+<p>Another great feature would be prepared statements. For example, when I alter the given query by replacing <code>""financial""</code> by <code>:department_name</code>, I would get a parameterized notification with the department name as parameter.</p>
+
+<p>I know about the trigger mechanism, however it does not seem to solve the problem.</p>
+",,,2015-03-26T22:07:53+00:00,1,True
+29289797,3888450,sqlite,Notification for changed SQL query result,"<p>Given a database with multiple tables. I want to have a mechanism that notifies me, when the result of a given query changes.</p>
+
+<p>For example, I have the following two tables</p>
+
+<pre><code>CREATE TABLE employee (
+    e_id int,
+    firstname varchar(255),
+    lastname varchar(255),
+    d_id int
+);
+
+CREATE TABLE department (
+    d_id int,
+    name varchar(255)
+);
+</code></pre>
+
+<p>and the query</p>
+
+<pre><code>SELECT firstname
+FROM employee
+JOIN department
+ON employee.d_id = department.d_id
+WHERE department.name = ""financial"";
+</code></pre>
+
+<p>I want to be notified, when I execute an insert/update/delete command on either <code>employee</code> or <code>department</code>, but only if the command execution changes the result of the query. An operation that does not change the result of the query, e.g. an update of the column <code>lastname</code> should not lead to a notification.</p>
+
+<p>I would like a solution that is independent of the DBMS, but if you know a solution for a specific DBMS don't hesitate to share it :-) Especially, I am interested in postgresql, mysql and sqlite.</p>
+
+<p>It would be great if the solution would also work for more complex queries, e.g. a query with subqueries and/or aggregate functions.</p>
+
+<p>Another great feature would be prepared statements. For example, when I alter the given query by replacing <code>""financial""</code> by <code>:department_name</code>, I would get a parameterized notification with the department name as parameter.</p>
+
+<p>I know about the trigger mechanism, however it does not seem to solve the problem.</p>
+",,,2015-03-26T22:07:53+00:00,1,True
+29289797,3888450,postgresql,Notification for changed SQL query result,"<p>Given a database with multiple tables. I want to have a mechanism that notifies me, when the result of a given query changes.</p>
+
+<p>For example, I have the following two tables</p>
+
+<pre><code>CREATE TABLE employee (
+    e_id int,
+    firstname varchar(255),
+    lastname varchar(255),
+    d_id int
+);
+
+CREATE TABLE department (
+    d_id int,
+    name varchar(255)
+);
+</code></pre>
+
+<p>and the query</p>
+
+<pre><code>SELECT firstname
+FROM employee
+JOIN department
+ON employee.d_id = department.d_id
+WHERE department.name = ""financial"";
+</code></pre>
+
+<p>I want to be notified, when I execute an insert/update/delete command on either <code>employee</code> or <code>department</code>, but only if the command execution changes the result of the query. An operation that does not change the result of the query, e.g. an update of the column <code>lastname</code> should not lead to a notification.</p>
+
+<p>I would like a solution that is independent of the DBMS, but if you know a solution for a specific DBMS don't hesitate to share it :-) Especially, I am interested in postgresql, mysql and sqlite.</p>
+
+<p>It would be great if the solution would also work for more complex queries, e.g. a query with subqueries and/or aggregate functions.</p>
+
+<p>Another great feature would be prepared statements. For example, when I alter the given query by replacing <code>""financial""</code> by <code>:department_name</code>, I would get a parameterized notification with the department name as parameter.</p>
+
+<p>I know about the trigger mechanism, however it does not seem to solve the problem.</p>
+",,,2015-03-26T22:07:53+00:00,1,True
+24622940,1040718,mysql,Use table alias in another query to traverse a tree,"<p>I have the following query:</p>
+
+<pre><code>select * from (
+   select p1.c as child, p1.p as parent, 1 as height
+   from parent as p1
+   where (p1.c=3 or p1.c=8);
+
+   union
+
+   select p2.c as child, p2.c as parent, 2 as height
+   from parent as p2 
+   where (p1.child=3 or p1.child=8) and p1.parent = p2.child;
+)
+</code></pre>
+
+<p>The schema is:</p>
+
+<pre><code>CREATE TABLE parent(p int, c int);
+</code></pre>
+
+<p>I'm trying to find a path from the <em>child</em> to the <em>root</em>. [Edit] And append the number of edges we have to traverse.<br>
+The goal is to join the child's parent with its parent, something like:</p>
+
+<pre><code>(8, 2, 1)
+(8, 5, 2) -&gt; 8 is the lowest child, 2 is its parent, and 5 it's 2 parent.
+</code></pre>
+
+<p>Some sample data:</p>
+
+<pre><code>10 | 5
+10 | 12
+12 | 3
+12 | 4
+4  | 6
+4  | 7
+5  | 11
+5  | 2
+2  | 8
+</code></pre>
+
+<p>How can I use the reference for the first query <code>p1</code> inside the second query that will form <code>p2</code>? 
+After that I should have;</p>
+
+<pre><code>(8,2,1)
+(3,12,1)
+(3,10,2)
+(8,5,2)
+</code></pre>
+
+<p>Thus I already will know what to do to complete what I want.</p>
+",,,2014-07-08T02:50:08+00:00,3,True
+24622940,1040718,sql,Use table alias in another query to traverse a tree,"<p>I have the following query:</p>
+
+<pre><code>select * from (
+   select p1.c as child, p1.p as parent, 1 as height
+   from parent as p1
+   where (p1.c=3 or p1.c=8);
+
+   union
+
+   select p2.c as child, p2.c as parent, 2 as height
+   from parent as p2 
+   where (p1.child=3 or p1.child=8) and p1.parent = p2.child;
+)
+</code></pre>
+
+<p>The schema is:</p>
+
+<pre><code>CREATE TABLE parent(p int, c int);
+</code></pre>
+
+<p>I'm trying to find a path from the <em>child</em> to the <em>root</em>. [Edit] And append the number of edges we have to traverse.<br>
+The goal is to join the child's parent with its parent, something like:</p>
+
+<pre><code>(8, 2, 1)
+(8, 5, 2) -&gt; 8 is the lowest child, 2 is its parent, and 5 it's 2 parent.
+</code></pre>
+
+<p>Some sample data:</p>
+
+<pre><code>10 | 5
+10 | 12
+12 | 3
+12 | 4
+4  | 6
+4  | 7
+5  | 11
+5  | 2
+2  | 8
+</code></pre>
+
+<p>How can I use the reference for the first query <code>p1</code> inside the second query that will form <code>p2</code>? 
+After that I should have;</p>
+
+<pre><code>(8,2,1)
+(3,12,1)
+(3,10,2)
+(8,5,2)
+</code></pre>
+
+<p>Thus I already will know what to do to complete what I want.</p>
+",,,2014-07-08T02:50:08+00:00,3,True
+24622940,1040718,sqlite,Use table alias in another query to traverse a tree,"<p>I have the following query:</p>
+
+<pre><code>select * from (
+   select p1.c as child, p1.p as parent, 1 as height
+   from parent as p1
+   where (p1.c=3 or p1.c=8);
+
+   union
+
+   select p2.c as child, p2.c as parent, 2 as height
+   from parent as p2 
+   where (p1.child=3 or p1.child=8) and p1.parent = p2.child;
+)
+</code></pre>
+
+<p>The schema is:</p>
+
+<pre><code>CREATE TABLE parent(p int, c int);
+</code></pre>
+
+<p>I'm trying to find a path from the <em>child</em> to the <em>root</em>. [Edit] And append the number of edges we have to traverse.<br>
+The goal is to join the child's parent with its parent, something like:</p>
+
+<pre><code>(8, 2, 1)
+(8, 5, 2) -&gt; 8 is the lowest child, 2 is its parent, and 5 it's 2 parent.
+</code></pre>
+
+<p>Some sample data:</p>
+
+<pre><code>10 | 5
+10 | 12
+12 | 3
+12 | 4
+4  | 6
+4  | 7
+5  | 11
+5  | 2
+2  | 8
+</code></pre>
+
+<p>How can I use the reference for the first query <code>p1</code> inside the second query that will form <code>p2</code>? 
+After that I should have;</p>
+
+<pre><code>(8,2,1)
+(3,12,1)
+(3,10,2)
+(8,5,2)
+</code></pre>
+
+<p>Thus I already will know what to do to complete what I want.</p>
+",,,2014-07-08T02:50:08+00:00,3,True
+24622940,1040718,postgresql,Use table alias in another query to traverse a tree,"<p>I have the following query:</p>
+
+<pre><code>select * from (
+   select p1.c as child, p1.p as parent, 1 as height
+   from parent as p1
+   where (p1.c=3 or p1.c=8);
+
+   union
+
+   select p2.c as child, p2.c as parent, 2 as height
+   from parent as p2 
+   where (p1.child=3 or p1.child=8) and p1.parent = p2.child;
+)
+</code></pre>
+
+<p>The schema is:</p>
+
+<pre><code>CREATE TABLE parent(p int, c int);
+</code></pre>
+
+<p>I'm trying to find a path from the <em>child</em> to the <em>root</em>. [Edit] And append the number of edges we have to traverse.<br>
+The goal is to join the child's parent with its parent, something like:</p>
+
+<pre><code>(8, 2, 1)
+(8, 5, 2) -&gt; 8 is the lowest child, 2 is its parent, and 5 it's 2 parent.
+</code></pre>
+
+<p>Some sample data:</p>
+
+<pre><code>10 | 5
+10 | 12
+12 | 3
+12 | 4
+4  | 6
+4  | 7
+5  | 11
+5  | 2
+2  | 8
+</code></pre>
+
+<p>How can I use the reference for the first query <code>p1</code> inside the second query that will form <code>p2</code>? 
+After that I should have;</p>
+
+<pre><code>(8,2,1)
+(3,12,1)
+(3,10,2)
+(8,5,2)
+</code></pre>
+
+<p>Thus I already will know what to do to complete what I want.</p>
+",,,2014-07-08T02:50:08+00:00,3,True
+21739930,558639,mysql,How can I speed up INSERTs into &lt;my DBMS&gt; SQL database from &lt;my language&gt;?,"<p>There have been a number of questions about speeding up INSERTs into an SQL database, such as <a href=""https://stackoverflow.com/questions/7090243/sql-insert-speed-up"">this</a>, <a href=""https://stackoverflow.com/questions/19716598/speed-up-insert"">this</a>, <a href=""https://stackoverflow.com/questions/13297974/speed-up-insert-query-mysql"">this</a>, <a href=""https://stackoverflow.com/questions/7507757/speeding-up-insert-query-over-2-databases"">this</a> and (my favorite) <a href=""https://stackoverflow.com/questions/1609637/is-it-possible-to-insert-multiple-rows-at-a-time-in-an-sqlite-database/"">this</a>.  Many of the questions masquerade as language dependent, but the question generally reduces to:</p>
+
+<p><strong>What general techniques will speed up INSERTS into my [specific DBMS] SQL database from my [specific language] program?</strong></p>
+",,,2014-02-12T21:21:13+00:00,1,True
+21739930,558639,sql,How can I speed up INSERTs into &lt;my DBMS&gt; SQL database from &lt;my language&gt;?,"<p>There have been a number of questions about speeding up INSERTs into an SQL database, such as <a href=""https://stackoverflow.com/questions/7090243/sql-insert-speed-up"">this</a>, <a href=""https://stackoverflow.com/questions/19716598/speed-up-insert"">this</a>, <a href=""https://stackoverflow.com/questions/13297974/speed-up-insert-query-mysql"">this</a>, <a href=""https://stackoverflow.com/questions/7507757/speeding-up-insert-query-over-2-databases"">this</a> and (my favorite) <a href=""https://stackoverflow.com/questions/1609637/is-it-possible-to-insert-multiple-rows-at-a-time-in-an-sqlite-database/"">this</a>.  Many of the questions masquerade as language dependent, but the question generally reduces to:</p>
+
+<p><strong>What general techniques will speed up INSERTS into my [specific DBMS] SQL database from my [specific language] program?</strong></p>
+",,,2014-02-12T21:21:13+00:00,1,True
+21739930,558639,sqlite,How can I speed up INSERTs into &lt;my DBMS&gt; SQL database from &lt;my language&gt;?,"<p>There have been a number of questions about speeding up INSERTs into an SQL database, such as <a href=""https://stackoverflow.com/questions/7090243/sql-insert-speed-up"">this</a>, <a href=""https://stackoverflow.com/questions/19716598/speed-up-insert"">this</a>, <a href=""https://stackoverflow.com/questions/13297974/speed-up-insert-query-mysql"">this</a>, <a href=""https://stackoverflow.com/questions/7507757/speeding-up-insert-query-over-2-databases"">this</a> and (my favorite) <a href=""https://stackoverflow.com/questions/1609637/is-it-possible-to-insert-multiple-rows-at-a-time-in-an-sqlite-database/"">this</a>.  Many of the questions masquerade as language dependent, but the question generally reduces to:</p>
+
+<p><strong>What general techniques will speed up INSERTS into my [specific DBMS] SQL database from my [specific language] program?</strong></p>
+",,,2014-02-12T21:21:13+00:00,1,True
+21739930,558639,postgresql,How can I speed up INSERTs into &lt;my DBMS&gt; SQL database from &lt;my language&gt;?,"<p>There have been a number of questions about speeding up INSERTs into an SQL database, such as <a href=""https://stackoverflow.com/questions/7090243/sql-insert-speed-up"">this</a>, <a href=""https://stackoverflow.com/questions/19716598/speed-up-insert"">this</a>, <a href=""https://stackoverflow.com/questions/13297974/speed-up-insert-query-mysql"">this</a>, <a href=""https://stackoverflow.com/questions/7507757/speeding-up-insert-query-over-2-databases"">this</a> and (my favorite) <a href=""https://stackoverflow.com/questions/1609637/is-it-possible-to-insert-multiple-rows-at-a-time-in-an-sqlite-database/"">this</a>.  Many of the questions masquerade as language dependent, but the question generally reduces to:</p>
+
+<p><strong>What general techniques will speed up INSERTS into my [specific DBMS] SQL database from my [specific language] program?</strong></p>
+",,,2014-02-12T21:21:13+00:00,1,True
+18904061,2796714,mysql,Find entries of a column in a database in all entries of another table,"<p>Consider the following schema for a database modeling courses:</p>
+
+<p>DEPARTMENT (did, name),</p>
+
+<p>COURSE (cid, did, name, num, creditHours),</p>
+
+<p>STUDENT (sid, fname, lname, did)</p>
+
+<p>ENROLLED_IN (eid, sid, cid)</p>
+
+<p><strong>List the first and last names of all students enrolled in every COMP course (DEPARTMENT.name=""COMP"")</strong></p>
+",,,2013-09-19T20:12:47+00:00,2,True
+18904061,2796714,sql,Find entries of a column in a database in all entries of another table,"<p>Consider the following schema for a database modeling courses:</p>
+
+<p>DEPARTMENT (did, name),</p>
+
+<p>COURSE (cid, did, name, num, creditHours),</p>
+
+<p>STUDENT (sid, fname, lname, did)</p>
+
+<p>ENROLLED_IN (eid, sid, cid)</p>
+
+<p><strong>List the first and last names of all students enrolled in every COMP course (DEPARTMENT.name=""COMP"")</strong></p>
+",,,2013-09-19T20:12:47+00:00,2,True
+18904061,2796714,sqlite,Find entries of a column in a database in all entries of another table,"<p>Consider the following schema for a database modeling courses:</p>
+
+<p>DEPARTMENT (did, name),</p>
+
+<p>COURSE (cid, did, name, num, creditHours),</p>
+
+<p>STUDENT (sid, fname, lname, did)</p>
+
+<p>ENROLLED_IN (eid, sid, cid)</p>
+
+<p><strong>List the first and last names of all students enrolled in every COMP course (DEPARTMENT.name=""COMP"")</strong></p>
+",,,2013-09-19T20:12:47+00:00,2,True
+18904061,2796714,postgresql,Find entries of a column in a database in all entries of another table,"<p>Consider the following schema for a database modeling courses:</p>
+
+<p>DEPARTMENT (did, name),</p>
+
+<p>COURSE (cid, did, name, num, creditHours),</p>
+
+<p>STUDENT (sid, fname, lname, did)</p>
+
+<p>ENROLLED_IN (eid, sid, cid)</p>
+
+<p><strong>List the first and last names of all students enrolled in every COMP course (DEPARTMENT.name=""COMP"")</strong></p>
+",,,2013-09-19T20:12:47+00:00,2,True
+15950871,1843451,mysql,Selecting all records using SQL LIMIT and OFFSET query,"<p>I wonder if there is a way to accomplish:</p>
+<pre><code>SELECT * FROM table
+</code></pre>
+<p>by using <code>LIMIT</code> and <code>OFFSET</code> like so:</p>
+<pre><code>SELECT * FROM table LIMIT all OFFSET 0
+</code></pre>
+<p>Can I write SQL statement <strong>using</strong> LIMIT and OFFSET but still getting ALL results?
+<br /><br />
+* <em>Of course, I can use an <code>IF</code> statement, but I would rather avoid it if possible</em></p>
+",,,2013-04-11T14:04:16+00:00,7,True
+15950871,1843451,sql,Selecting all records using SQL LIMIT and OFFSET query,"<p>I wonder if there is a way to accomplish:</p>
+<pre><code>SELECT * FROM table
+</code></pre>
+<p>by using <code>LIMIT</code> and <code>OFFSET</code> like so:</p>
+<pre><code>SELECT * FROM table LIMIT all OFFSET 0
+</code></pre>
+<p>Can I write SQL statement <strong>using</strong> LIMIT and OFFSET but still getting ALL results?
+<br /><br />
+* <em>Of course, I can use an <code>IF</code> statement, but I would rather avoid it if possible</em></p>
+",,,2013-04-11T14:04:16+00:00,7,True
+15950871,1843451,postgresql,Selecting all records using SQL LIMIT and OFFSET query,"<p>I wonder if there is a way to accomplish:</p>
+<pre><code>SELECT * FROM table
+</code></pre>
+<p>by using <code>LIMIT</code> and <code>OFFSET</code> like so:</p>
+<pre><code>SELECT * FROM table LIMIT all OFFSET 0
+</code></pre>
+<p>Can I write SQL statement <strong>using</strong> LIMIT and OFFSET but still getting ALL results?
+<br /><br />
+* <em>Of course, I can use an <code>IF</code> statement, but I would rather avoid it if possible</em></p>
+",,,2013-04-11T14:04:16+00:00,7,True
+15950871,1843451,sqlite,Selecting all records using SQL LIMIT and OFFSET query,"<p>I wonder if there is a way to accomplish:</p>
+<pre><code>SELECT * FROM table
+</code></pre>
+<p>by using <code>LIMIT</code> and <code>OFFSET</code> like so:</p>
+<pre><code>SELECT * FROM table LIMIT all OFFSET 0
+</code></pre>
+<p>Can I write SQL statement <strong>using</strong> LIMIT and OFFSET but still getting ALL results?
+<br /><br />
+* <em>Of course, I can use an <code>IF</code> statement, but I would rather avoid it if possible</em></p>
+",,,2013-04-11T14:04:16+00:00,7,True
+15112004,1993475,mysql,Find intersections between rows and timestamps in a mysql db,"<p>I have a table, where events of certain objects are listed. </p>
+
+<p>There are two events: ""movement"" and ""load"". They can start and end, and these events are listed with timestamps when they happened.</p>
+
+<p>Now i want to calculate the following three numbers:</p>
+
+<ul>
+<li>sum of time, when movement took place (value in the fiddle: 700)</li>
+<li>sum of time, when load took place (value in the fiddle: 630)</li>
+<li>sum of time, when movement and load took place (value in the fiddle: 611)</li>
+</ul>
+
+<p>I have created a sqlfiddle for the problem here: </p>
+
+<p><a href=""http://sqlfiddle.com/#!2/be512"" rel=""nofollow"">http://sqlfiddle.com/#!2/be512</a></p>
+",,,2013-02-27T12:19:56+00:00,3,True
+15112004,1993475,sql,Find intersections between rows and timestamps in a mysql db,"<p>I have a table, where events of certain objects are listed. </p>
+
+<p>There are two events: ""movement"" and ""load"". They can start and end, and these events are listed with timestamps when they happened.</p>
+
+<p>Now i want to calculate the following three numbers:</p>
+
+<ul>
+<li>sum of time, when movement took place (value in the fiddle: 700)</li>
+<li>sum of time, when load took place (value in the fiddle: 630)</li>
+<li>sum of time, when movement and load took place (value in the fiddle: 611)</li>
+</ul>
+
+<p>I have created a sqlfiddle for the problem here: </p>
+
+<p><a href=""http://sqlfiddle.com/#!2/be512"" rel=""nofollow"">http://sqlfiddle.com/#!2/be512</a></p>
+",,,2013-02-27T12:19:56+00:00,3,True
+15112004,1993475,sqlite,Find intersections between rows and timestamps in a mysql db,"<p>I have a table, where events of certain objects are listed. </p>
+
+<p>There are two events: ""movement"" and ""load"". They can start and end, and these events are listed with timestamps when they happened.</p>
+
+<p>Now i want to calculate the following three numbers:</p>
+
+<ul>
+<li>sum of time, when movement took place (value in the fiddle: 700)</li>
+<li>sum of time, when load took place (value in the fiddle: 630)</li>
+<li>sum of time, when movement and load took place (value in the fiddle: 611)</li>
+</ul>
+
+<p>I have created a sqlfiddle for the problem here: </p>
+
+<p><a href=""http://sqlfiddle.com/#!2/be512"" rel=""nofollow"">http://sqlfiddle.com/#!2/be512</a></p>
+",,,2013-02-27T12:19:56+00:00,3,True
+15112004,1993475,postgresql,Find intersections between rows and timestamps in a mysql db,"<p>I have a table, where events of certain objects are listed. </p>
+
+<p>There are two events: ""movement"" and ""load"". They can start and end, and these events are listed with timestamps when they happened.</p>
+
+<p>Now i want to calculate the following three numbers:</p>
+
+<ul>
+<li>sum of time, when movement took place (value in the fiddle: 700)</li>
+<li>sum of time, when load took place (value in the fiddle: 630)</li>
+<li>sum of time, when movement and load took place (value in the fiddle: 611)</li>
+</ul>
+
+<p>I have created a sqlfiddle for the problem here: </p>
+
+<p><a href=""http://sqlfiddle.com/#!2/be512"" rel=""nofollow"">http://sqlfiddle.com/#!2/be512</a></p>
+",,,2013-02-27T12:19:56+00:00,3,True
+13068513,1527166,mysql,Sort by different columns,"<p>I have this data, in a table <code>categories</code></p>
+
+<pre><code>id | name | post_count
+ 1 | A    | 10
+ 2 | B    | 15
+ 3 | C    | 8
+ 4 | D    | 14
+ 5 | E    | 1
+ 6 | F    | 20
+</code></pre>
+
+<p>I want to fetch the top 4 categories, by <code>post_count</code>, and order them by <code>name</code>.</p>
+
+<p>If I do</p>
+
+<pre><code>SELECT * FROM categories ORDER BY post_count DESC LIMIT 4
+</code></pre>
+
+<p>I'll get the categories in order: <code>F, B, D, A</code>, while I want <code>A, B, D, F</code></p>
+
+<p>Is this possible with a single SQL query? How can I do this?</p>
+",,,2012-10-25T12:23:52+00:00,3,True
+13068513,1527166,sql,Sort by different columns,"<p>I have this data, in a table <code>categories</code></p>
+
+<pre><code>id | name | post_count
+ 1 | A    | 10
+ 2 | B    | 15
+ 3 | C    | 8
+ 4 | D    | 14
+ 5 | E    | 1
+ 6 | F    | 20
+</code></pre>
+
+<p>I want to fetch the top 4 categories, by <code>post_count</code>, and order them by <code>name</code>.</p>
+
+<p>If I do</p>
+
+<pre><code>SELECT * FROM categories ORDER BY post_count DESC LIMIT 4
+</code></pre>
+
+<p>I'll get the categories in order: <code>F, B, D, A</code>, while I want <code>A, B, D, F</code></p>
+
+<p>Is this possible with a single SQL query? How can I do this?</p>
+",,,2012-10-25T12:23:52+00:00,3,True
+13068513,1527166,postgresql,Sort by different columns,"<p>I have this data, in a table <code>categories</code></p>
+
+<pre><code>id | name | post_count
+ 1 | A    | 10
+ 2 | B    | 15
+ 3 | C    | 8
+ 4 | D    | 14
+ 5 | E    | 1
+ 6 | F    | 20
+</code></pre>
+
+<p>I want to fetch the top 4 categories, by <code>post_count</code>, and order them by <code>name</code>.</p>
+
+<p>If I do</p>
+
+<pre><code>SELECT * FROM categories ORDER BY post_count DESC LIMIT 4
+</code></pre>
+
+<p>I'll get the categories in order: <code>F, B, D, A</code>, while I want <code>A, B, D, F</code></p>
+
+<p>Is this possible with a single SQL query? How can I do this?</p>
+",,,2012-10-25T12:23:52+00:00,3,True
+13068513,1527166,sqlite,Sort by different columns,"<p>I have this data, in a table <code>categories</code></p>
+
+<pre><code>id | name | post_count
+ 1 | A    | 10
+ 2 | B    | 15
+ 3 | C    | 8
+ 4 | D    | 14
+ 5 | E    | 1
+ 6 | F    | 20
+</code></pre>
+
+<p>I want to fetch the top 4 categories, by <code>post_count</code>, and order them by <code>name</code>.</p>
+
+<p>If I do</p>
+
+<pre><code>SELECT * FROM categories ORDER BY post_count DESC LIMIT 4
+</code></pre>
+
+<p>I'll get the categories in order: <code>F, B, D, A</code>, while I want <code>A, B, D, F</code></p>
+
+<p>Is this possible with a single SQL query? How can I do this?</p>
+",,,2012-10-25T12:23:52+00:00,3,True
+12223388,308079,mysql,"cross server, standard SQL to produce a comma delimited list","<p>I've been looking but can't find anything. Is there a SQL standard compliant way to produce output like <a href=""http://sqlandme.com/2011/04/27/tsql-concatenate-rows-using-for-xml-path/"" rel=""noreferrer"">this</a> TSQL? I would like a single query that would work just as well on sqlite, mysql, postgresql or sql server. Is something like that even possible?</p>
+",,,2012-08-31T22:54:57+00:00,1,True
+12223388,308079,sql,"cross server, standard SQL to produce a comma delimited list","<p>I've been looking but can't find anything. Is there a SQL standard compliant way to produce output like <a href=""http://sqlandme.com/2011/04/27/tsql-concatenate-rows-using-for-xml-path/"" rel=""noreferrer"">this</a> TSQL? I would like a single query that would work just as well on sqlite, mysql, postgresql or sql server. Is something like that even possible?</p>
+",,,2012-08-31T22:54:57+00:00,1,True
+12223388,308079,sqlite,"cross server, standard SQL to produce a comma delimited list","<p>I've been looking but can't find anything. Is there a SQL standard compliant way to produce output like <a href=""http://sqlandme.com/2011/04/27/tsql-concatenate-rows-using-for-xml-path/"" rel=""noreferrer"">this</a> TSQL? I would like a single query that would work just as well on sqlite, mysql, postgresql or sql server. Is something like that even possible?</p>
+",,,2012-08-31T22:54:57+00:00,1,True
+12223388,308079,postgresql,"cross server, standard SQL to produce a comma delimited list","<p>I've been looking but can't find anything. Is there a SQL standard compliant way to produce output like <a href=""http://sqlandme.com/2011/04/27/tsql-concatenate-rows-using-for-xml-path/"" rel=""noreferrer"">this</a> TSQL? I would like a single query that would work just as well on sqlite, mysql, postgresql or sql server. Is something like that even possible?</p>
+",,,2012-08-31T22:54:57+00:00,1,True
+12046599,1415297,mysql,Inserting Primary ID of one table into another table,"<p>I need some help on how to set up a database for user accounts on a mobile device. I have 2 tables: login and settings. </p>
+
+<p>login</p>
+
+<pre><code>id         1
+username   test
+password   pass
+</code></pre>
+
+<p>settings</p>
+
+<pre><code>id(same key from login)  1
+setting1                 0
+setting2                 0
+setting3                 0
+</code></pre>
+
+<p>I have a register page and I want to insert the username, password, and an auto increment primary ID into the login table and I want to insert that <strong>same</strong> login ID, setting1, setting2, setting3 into the settings table. Can anyone give an example query on how to insert the login ID into both tables at the same time? How do people in the field normally set up user account databases? I will be using web-sql, but you can answer using any sql driver or just plain charts/text. </p>
+",,,2012-08-20T23:29:02+00:00,1,True
+12046599,1415297,sql,Inserting Primary ID of one table into another table,"<p>I need some help on how to set up a database for user accounts on a mobile device. I have 2 tables: login and settings. </p>
+
+<p>login</p>
+
+<pre><code>id         1
+username   test
+password   pass
+</code></pre>
+
+<p>settings</p>
+
+<pre><code>id(same key from login)  1
+setting1                 0
+setting2                 0
+setting3                 0
+</code></pre>
+
+<p>I have a register page and I want to insert the username, password, and an auto increment primary ID into the login table and I want to insert that <strong>same</strong> login ID, setting1, setting2, setting3 into the settings table. Can anyone give an example query on how to insert the login ID into both tables at the same time? How do people in the field normally set up user account databases? I will be using web-sql, but you can answer using any sql driver or just plain charts/text. </p>
+",,,2012-08-20T23:29:02+00:00,1,True
+12046599,1415297,sqlite,Inserting Primary ID of one table into another table,"<p>I need some help on how to set up a database for user accounts on a mobile device. I have 2 tables: login and settings. </p>
+
+<p>login</p>
+
+<pre><code>id         1
+username   test
+password   pass
+</code></pre>
+
+<p>settings</p>
+
+<pre><code>id(same key from login)  1
+setting1                 0
+setting2                 0
+setting3                 0
+</code></pre>
+
+<p>I have a register page and I want to insert the username, password, and an auto increment primary ID into the login table and I want to insert that <strong>same</strong> login ID, setting1, setting2, setting3 into the settings table. Can anyone give an example query on how to insert the login ID into both tables at the same time? How do people in the field normally set up user account databases? I will be using web-sql, but you can answer using any sql driver or just plain charts/text. </p>
+",,,2012-08-20T23:29:02+00:00,1,True
+12046599,1415297,postgresql,Inserting Primary ID of one table into another table,"<p>I need some help on how to set up a database for user accounts on a mobile device. I have 2 tables: login and settings. </p>
+
+<p>login</p>
+
+<pre><code>id         1
+username   test
+password   pass
+</code></pre>
+
+<p>settings</p>
+
+<pre><code>id(same key from login)  1
+setting1                 0
+setting2                 0
+setting3                 0
+</code></pre>
+
+<p>I have a register page and I want to insert the username, password, and an auto increment primary ID into the login table and I want to insert that <strong>same</strong> login ID, setting1, setting2, setting3 into the settings table. Can anyone give an example query on how to insert the login ID into both tables at the same time? How do people in the field normally set up user account databases? I will be using web-sql, but you can answer using any sql driver or just plain charts/text. </p>
+",,,2012-08-20T23:29:02+00:00,1,True
+11319762,396300,mysql,Performing a SUM over nested Foreign Key relationships,"<p>I have some tables roughly like so:</p>
+
+<pre><code>Client:
+   id
+   name
+
+Employee 
+   id 
+   name
+
+Email
+   id
+   to : Client [ForeignKey]
+   from : Employee [ForeignKey]
+
+EmailStats (Tracks the stats for a particular single email)
+   id
+   email : Email [OneToOne]
+   curse_words : 10
+</code></pre>
+
+<p><strong>What I want to do:</strong> I want to fetch <em>all</em> the employees that have written at least one email to a single client, along with the number of times they've cursed in any of their emails to that single client, i.e. for a particular <code>Client</code> return</p>
+
+<pre><code>[
+    ('name' : 'Paul', 'total_curses' : 255),
+    ('name' : 'Mary', 'total_curses' : 10),
+]
+</code></pre>
+
+<p><strong>What I've tried:</strong> </p>
+
+<p>My understanding of SQL is quite weak as I'm used to using ORM's. I'm having trouble understanding how the normal retrieval of <code>Employees</code> links into the counting of the curse words. Here's what I've done (be kind!):</p>
+
+<pre><code>SELECT DISTINCT (
+    SELECT SUM(EmailStats.curse_words)
+    FROM EmailStats
+    INNER JOIN (
+      SELECT Email.id
+      FROM Email
+      INNER JOIN Employee
+          ON Email.from = Employee.id
+      WHERE Email.to = 5 // Assuming 5 is the client's id
+    ) filtered_emails ON EmailStats.email = filtered_emails.id                
+) AS 'total_curses', Employee.name
+FROM Employee
+INNER JOIN Email
+   ON  Email.from = Employee.id 
+WHERE Email.to = 5 // Assuming 5 is the client's id
+ORDER_BY 'total_curses'
+</code></pre>
+
+<p>This isn't working - it seems to fetch the correct <code>Employees</code> (those who have sent to the <code>Client</code>) but the curses count seems to be the total for all emails to that <code>Client</code> instead of just those curses from that <code>Employee</code>.</p>
+
+<p>I've got a feeling that I'm gravely misunderstanding something here, so if anyone could provide an example of how to succesfully go about this I'd appreciate some pointers. </p>
+",,,2012-07-03T21:56:02+00:00,2,True
+11319762,396300,sql,Performing a SUM over nested Foreign Key relationships,"<p>I have some tables roughly like so:</p>
+
+<pre><code>Client:
+   id
+   name
+
+Employee 
+   id 
+   name
+
+Email
+   id
+   to : Client [ForeignKey]
+   from : Employee [ForeignKey]
+
+EmailStats (Tracks the stats for a particular single email)
+   id
+   email : Email [OneToOne]
+   curse_words : 10
+</code></pre>
+
+<p><strong>What I want to do:</strong> I want to fetch <em>all</em> the employees that have written at least one email to a single client, along with the number of times they've cursed in any of their emails to that single client, i.e. for a particular <code>Client</code> return</p>
+
+<pre><code>[
+    ('name' : 'Paul', 'total_curses' : 255),
+    ('name' : 'Mary', 'total_curses' : 10),
+]
+</code></pre>
+
+<p><strong>What I've tried:</strong> </p>
+
+<p>My understanding of SQL is quite weak as I'm used to using ORM's. I'm having trouble understanding how the normal retrieval of <code>Employees</code> links into the counting of the curse words. Here's what I've done (be kind!):</p>
+
+<pre><code>SELECT DISTINCT (
+    SELECT SUM(EmailStats.curse_words)
+    FROM EmailStats
+    INNER JOIN (
+      SELECT Email.id
+      FROM Email
+      INNER JOIN Employee
+          ON Email.from = Employee.id
+      WHERE Email.to = 5 // Assuming 5 is the client's id
+    ) filtered_emails ON EmailStats.email = filtered_emails.id                
+) AS 'total_curses', Employee.name
+FROM Employee
+INNER JOIN Email
+   ON  Email.from = Employee.id 
+WHERE Email.to = 5 // Assuming 5 is the client's id
+ORDER_BY 'total_curses'
+</code></pre>
+
+<p>This isn't working - it seems to fetch the correct <code>Employees</code> (those who have sent to the <code>Client</code>) but the curses count seems to be the total for all emails to that <code>Client</code> instead of just those curses from that <code>Employee</code>.</p>
+
+<p>I've got a feeling that I'm gravely misunderstanding something here, so if anyone could provide an example of how to succesfully go about this I'd appreciate some pointers. </p>
+",,,2012-07-03T21:56:02+00:00,2,True
+11319762,396300,sqlite,Performing a SUM over nested Foreign Key relationships,"<p>I have some tables roughly like so:</p>
+
+<pre><code>Client:
+   id
+   name
+
+Employee 
+   id 
+   name
+
+Email
+   id
+   to : Client [ForeignKey]
+   from : Employee [ForeignKey]
+
+EmailStats (Tracks the stats for a particular single email)
+   id
+   email : Email [OneToOne]
+   curse_words : 10
+</code></pre>
+
+<p><strong>What I want to do:</strong> I want to fetch <em>all</em> the employees that have written at least one email to a single client, along with the number of times they've cursed in any of their emails to that single client, i.e. for a particular <code>Client</code> return</p>
+
+<pre><code>[
+    ('name' : 'Paul', 'total_curses' : 255),
+    ('name' : 'Mary', 'total_curses' : 10),
+]
+</code></pre>
+
+<p><strong>What I've tried:</strong> </p>
+
+<p>My understanding of SQL is quite weak as I'm used to using ORM's. I'm having trouble understanding how the normal retrieval of <code>Employees</code> links into the counting of the curse words. Here's what I've done (be kind!):</p>
+
+<pre><code>SELECT DISTINCT (
+    SELECT SUM(EmailStats.curse_words)
+    FROM EmailStats
+    INNER JOIN (
+      SELECT Email.id
+      FROM Email
+      INNER JOIN Employee
+          ON Email.from = Employee.id
+      WHERE Email.to = 5 // Assuming 5 is the client's id
+    ) filtered_emails ON EmailStats.email = filtered_emails.id                
+) AS 'total_curses', Employee.name
+FROM Employee
+INNER JOIN Email
+   ON  Email.from = Employee.id 
+WHERE Email.to = 5 // Assuming 5 is the client's id
+ORDER_BY 'total_curses'
+</code></pre>
+
+<p>This isn't working - it seems to fetch the correct <code>Employees</code> (those who have sent to the <code>Client</code>) but the curses count seems to be the total for all emails to that <code>Client</code> instead of just those curses from that <code>Employee</code>.</p>
+
+<p>I've got a feeling that I'm gravely misunderstanding something here, so if anyone could provide an example of how to succesfully go about this I'd appreciate some pointers. </p>
+",,,2012-07-03T21:56:02+00:00,2,True
+11319762,396300,postgresql,Performing a SUM over nested Foreign Key relationships,"<p>I have some tables roughly like so:</p>
+
+<pre><code>Client:
+   id
+   name
+
+Employee 
+   id 
+   name
+
+Email
+   id
+   to : Client [ForeignKey]
+   from : Employee [ForeignKey]
+
+EmailStats (Tracks the stats for a particular single email)
+   id
+   email : Email [OneToOne]
+   curse_words : 10
+</code></pre>
+
+<p><strong>What I want to do:</strong> I want to fetch <em>all</em> the employees that have written at least one email to a single client, along with the number of times they've cursed in any of their emails to that single client, i.e. for a particular <code>Client</code> return</p>
+
+<pre><code>[
+    ('name' : 'Paul', 'total_curses' : 255),
+    ('name' : 'Mary', 'total_curses' : 10),
+]
+</code></pre>
+
+<p><strong>What I've tried:</strong> </p>
+
+<p>My understanding of SQL is quite weak as I'm used to using ORM's. I'm having trouble understanding how the normal retrieval of <code>Employees</code> links into the counting of the curse words. Here's what I've done (be kind!):</p>
+
+<pre><code>SELECT DISTINCT (
+    SELECT SUM(EmailStats.curse_words)
+    FROM EmailStats
+    INNER JOIN (
+      SELECT Email.id
+      FROM Email
+      INNER JOIN Employee
+          ON Email.from = Employee.id
+      WHERE Email.to = 5 // Assuming 5 is the client's id
+    ) filtered_emails ON EmailStats.email = filtered_emails.id                
+) AS 'total_curses', Employee.name
+FROM Employee
+INNER JOIN Email
+   ON  Email.from = Employee.id 
+WHERE Email.to = 5 // Assuming 5 is the client's id
+ORDER_BY 'total_curses'
+</code></pre>
+
+<p>This isn't working - it seems to fetch the correct <code>Employees</code> (those who have sent to the <code>Client</code>) but the curses count seems to be the total for all emails to that <code>Client</code> instead of just those curses from that <code>Employee</code>.</p>
+
+<p>I've got a feeling that I'm gravely misunderstanding something here, so if anyone could provide an example of how to succesfully go about this I'd appreciate some pointers. </p>
+",,,2012-07-03T21:56:02+00:00,2,True
+10999913,1132642,mysql,Why do results from a SQL query not come back in the order I expect?,"<p>If items are inserted in a table, and then I write a query, such as <code>select * from table</code>, why are the results not in the order that I expect?</p>
+",,,2012-06-12T15:32:25+00:00,2,True
+10999913,1132642,sql,Why do results from a SQL query not come back in the order I expect?,"<p>If items are inserted in a table, and then I write a query, such as <code>select * from table</code>, why are the results not in the order that I expect?</p>
+",,,2012-06-12T15:32:25+00:00,2,True
+10999913,1132642,postgresql,Why do results from a SQL query not come back in the order I expect?,"<p>If items are inserted in a table, and then I write a query, such as <code>select * from table</code>, why are the results not in the order that I expect?</p>
+",,,2012-06-12T15:32:25+00:00,2,True
+10999913,1132642,sqlite,Why do results from a SQL query not come back in the order I expect?,"<p>If items are inserted in a table, and then I write a query, such as <code>select * from table</code>, why are the results not in the order that I expect?</p>
+",,,2012-06-12T15:32:25+00:00,2,True
+9901824,808921,mysql,Example database schemas for different db types,"<p>I am looking for some adequately-complex sample database schemas that I could use for examples on my site <a href=""http://sqlfiddle.com"" rel=""nofollow"">http://sqlfiddle.com</a> (my current examples are pretty pathetic).  I know about AdventureWorks and Northwind for SQL Server, but I haven't really heard of any other ""classic"" examples for the other database types I support: Oracle, MySQL, PostgreSQL, and SQLite.  Ultimately, I would like both interesting/familiar schemas and some cool queries as the ""Example Fiddle"" for each type.  However, for the moment I'm only looking for the schema; the queries can come later.  Please point me in the direction of some of those interesting schemas, targeted for each database type.</p>
+",,,2012-03-28T05:51:06+00:00,1,True
+9901824,808921,sql,Example database schemas for different db types,"<p>I am looking for some adequately-complex sample database schemas that I could use for examples on my site <a href=""http://sqlfiddle.com"" rel=""nofollow"">http://sqlfiddle.com</a> (my current examples are pretty pathetic).  I know about AdventureWorks and Northwind for SQL Server, but I haven't really heard of any other ""classic"" examples for the other database types I support: Oracle, MySQL, PostgreSQL, and SQLite.  Ultimately, I would like both interesting/familiar schemas and some cool queries as the ""Example Fiddle"" for each type.  However, for the moment I'm only looking for the schema; the queries can come later.  Please point me in the direction of some of those interesting schemas, targeted for each database type.</p>
+",,,2012-03-28T05:51:06+00:00,1,True
+9901824,808921,sqlite,Example database schemas for different db types,"<p>I am looking for some adequately-complex sample database schemas that I could use for examples on my site <a href=""http://sqlfiddle.com"" rel=""nofollow"">http://sqlfiddle.com</a> (my current examples are pretty pathetic).  I know about AdventureWorks and Northwind for SQL Server, but I haven't really heard of any other ""classic"" examples for the other database types I support: Oracle, MySQL, PostgreSQL, and SQLite.  Ultimately, I would like both interesting/familiar schemas and some cool queries as the ""Example Fiddle"" for each type.  However, for the moment I'm only looking for the schema; the queries can come later.  Please point me in the direction of some of those interesting schemas, targeted for each database type.</p>
+",,,2012-03-28T05:51:06+00:00,1,True
+9901824,808921,postgresql,Example database schemas for different db types,"<p>I am looking for some adequately-complex sample database schemas that I could use for examples on my site <a href=""http://sqlfiddle.com"" rel=""nofollow"">http://sqlfiddle.com</a> (my current examples are pretty pathetic).  I know about AdventureWorks and Northwind for SQL Server, but I haven't really heard of any other ""classic"" examples for the other database types I support: Oracle, MySQL, PostgreSQL, and SQLite.  Ultimately, I would like both interesting/familiar schemas and some cool queries as the ""Example Fiddle"" for each type.  However, for the moment I'm only looking for the schema; the queries can come later.  Please point me in the direction of some of those interesting schemas, targeted for each database type.</p>
+",,,2012-03-28T05:51:06+00:00,1,True
+7791361,557934,mysql,SQL to return list of fields containing non-NULL data,"<p>How can I return a list of fields from a given table that contain any non-NULL data?</p>
+
+<p>As en example, how could I query the example table below to only return the following three values as they contain something other than NULL.</p>
+
+<ul>
+<li>LO2_HiddenOrgID </li>
+<li>LO2_BranchOfOrgID </li>
+<li>LO2_ShortName</li>
+</ul>
+
+<p><img src=""https://i.sstatic.net/MnVoN.png"" alt=""Example Database""></p>
+
+<p>I'm looking to automate this as much as possible as I have a few thousand fields to inspect.  </p>
+
+<p>Also, I'm currently using SQLite while developing, but would happily accept any suggestions specific to SQLite, MySQL or PostgreSQL.</p>
+",,,2011-10-17T08:47:39+00:00,7,True
+7791361,557934,sql,SQL to return list of fields containing non-NULL data,"<p>How can I return a list of fields from a given table that contain any non-NULL data?</p>
+
+<p>As en example, how could I query the example table below to only return the following three values as they contain something other than NULL.</p>
+
+<ul>
+<li>LO2_HiddenOrgID </li>
+<li>LO2_BranchOfOrgID </li>
+<li>LO2_ShortName</li>
+</ul>
+
+<p><img src=""https://i.sstatic.net/MnVoN.png"" alt=""Example Database""></p>
+
+<p>I'm looking to automate this as much as possible as I have a few thousand fields to inspect.  </p>
+
+<p>Also, I'm currently using SQLite while developing, but would happily accept any suggestions specific to SQLite, MySQL or PostgreSQL.</p>
+",,,2011-10-17T08:47:39+00:00,7,True
+7791361,557934,sqlite,SQL to return list of fields containing non-NULL data,"<p>How can I return a list of fields from a given table that contain any non-NULL data?</p>
+
+<p>As en example, how could I query the example table below to only return the following three values as they contain something other than NULL.</p>
+
+<ul>
+<li>LO2_HiddenOrgID </li>
+<li>LO2_BranchOfOrgID </li>
+<li>LO2_ShortName</li>
+</ul>
+
+<p><img src=""https://i.sstatic.net/MnVoN.png"" alt=""Example Database""></p>
+
+<p>I'm looking to automate this as much as possible as I have a few thousand fields to inspect.  </p>
+
+<p>Also, I'm currently using SQLite while developing, but would happily accept any suggestions specific to SQLite, MySQL or PostgreSQL.</p>
+",,,2011-10-17T08:47:39+00:00,7,True
+7791361,557934,postgresql,SQL to return list of fields containing non-NULL data,"<p>How can I return a list of fields from a given table that contain any non-NULL data?</p>
+
+<p>As en example, how could I query the example table below to only return the following three values as they contain something other than NULL.</p>
+
+<ul>
+<li>LO2_HiddenOrgID </li>
+<li>LO2_BranchOfOrgID </li>
+<li>LO2_ShortName</li>
+</ul>
+
+<p><img src=""https://i.sstatic.net/MnVoN.png"" alt=""Example Database""></p>
+
+<p>I'm looking to automate this as much as possible as I have a few thousand fields to inspect.  </p>
+
+<p>Also, I'm currently using SQLite while developing, but would happily accept any suggestions specific to SQLite, MySQL or PostgreSQL.</p>
+",,,2011-10-17T08:47:39+00:00,7,True
+6209645,202875,mysql,SQL Count Totals Within Date Ranges,"<p>I have a CHANGES table with fields VALUE(integer) and CREATED_AT(timestamp). I want to know the total of the VALUE column grouped by each of the past 30 days (without making 30 queries). </p>
+
+<p>So if yesterday there were records created with VALUEs of 10, -7, and 12; I would want a record returned with CREATED_AT = yesterday and TOTAL = 15.</p>
+
+<p>Any help?</p>
+",,,2011-06-02T01:58:40+00:00,2,True
+6209645,202875,sql,SQL Count Totals Within Date Ranges,"<p>I have a CHANGES table with fields VALUE(integer) and CREATED_AT(timestamp). I want to know the total of the VALUE column grouped by each of the past 30 days (without making 30 queries). </p>
+
+<p>So if yesterday there were records created with VALUEs of 10, -7, and 12; I would want a record returned with CREATED_AT = yesterday and TOTAL = 15.</p>
+
+<p>Any help?</p>
+",,,2011-06-02T01:58:40+00:00,2,True
+6209645,202875,sqlite,SQL Count Totals Within Date Ranges,"<p>I have a CHANGES table with fields VALUE(integer) and CREATED_AT(timestamp). I want to know the total of the VALUE column grouped by each of the past 30 days (without making 30 queries). </p>
+
+<p>So if yesterday there were records created with VALUEs of 10, -7, and 12; I would want a record returned with CREATED_AT = yesterday and TOTAL = 15.</p>
+
+<p>Any help?</p>
+",,,2011-06-02T01:58:40+00:00,2,True
+6209645,202875,postgresql,SQL Count Totals Within Date Ranges,"<p>I have a CHANGES table with fields VALUE(integer) and CREATED_AT(timestamp). I want to know the total of the VALUE column grouped by each of the past 30 days (without making 30 queries). </p>
+
+<p>So if yesterday there were records created with VALUEs of 10, -7, and 12; I would want a record returned with CREATED_AT = yesterday and TOTAL = 15.</p>
+
+<p>Any help?</p>
+",,,2011-06-02T01:58:40+00:00,2,True
+4055258,166229,sql,Compatible boolean data type of various relational databases,"<p>I am trying to create a select statement that is compatible with all major relational databases (MySQL, PostgreSQL, Derby, SQLite, ...).</p>
+
+<p>Here the simple select statement: <code>SELECT * FROM taggings WHERE public IS TRUE</code></p>
+
+<p>The problem is that SQLite for example does not support the boolean data type, so I rewrote my statement to: <code>SELECT * FROM taggings WHERE public = 1</code></p>
+
+<p>As far as I know it is valid for SQLite (wich uses some kind of byte for the public field) and also MySQL (which interprets the 1 as true, cause it uses the boolean type for the public field).</p>
+
+<p>How about PostgreSQL when also uses a boolean public field? From the manual it looks like that I have to write <code>SELECT * FROM taggings WHERE public = '1'</code>. Or is that equivalent in that case to the above statement? (I don't have a chance to setup a PostgreSQL database here.)</p>
+
+<p>Thanks for the help!</p>
+",,,2010-10-29T19:34:03+00:00,1,True
+4055258,166229,mysql,Compatible boolean data type of various relational databases,"<p>I am trying to create a select statement that is compatible with all major relational databases (MySQL, PostgreSQL, Derby, SQLite, ...).</p>
+
+<p>Here the simple select statement: <code>SELECT * FROM taggings WHERE public IS TRUE</code></p>
+
+<p>The problem is that SQLite for example does not support the boolean data type, so I rewrote my statement to: <code>SELECT * FROM taggings WHERE public = 1</code></p>
+
+<p>As far as I know it is valid for SQLite (wich uses some kind of byte for the public field) and also MySQL (which interprets the 1 as true, cause it uses the boolean type for the public field).</p>
+
+<p>How about PostgreSQL when also uses a boolean public field? From the manual it looks like that I have to write <code>SELECT * FROM taggings WHERE public = '1'</code>. Or is that equivalent in that case to the above statement? (I don't have a chance to setup a PostgreSQL database here.)</p>
+
+<p>Thanks for the help!</p>
+",,,2010-10-29T19:34:03+00:00,1,True
+4055258,166229,sqlite,Compatible boolean data type of various relational databases,"<p>I am trying to create a select statement that is compatible with all major relational databases (MySQL, PostgreSQL, Derby, SQLite, ...).</p>
+
+<p>Here the simple select statement: <code>SELECT * FROM taggings WHERE public IS TRUE</code></p>
+
+<p>The problem is that SQLite for example does not support the boolean data type, so I rewrote my statement to: <code>SELECT * FROM taggings WHERE public = 1</code></p>
+
+<p>As far as I know it is valid for SQLite (wich uses some kind of byte for the public field) and also MySQL (which interprets the 1 as true, cause it uses the boolean type for the public field).</p>
+
+<p>How about PostgreSQL when also uses a boolean public field? From the manual it looks like that I have to write <code>SELECT * FROM taggings WHERE public = '1'</code>. Or is that equivalent in that case to the above statement? (I don't have a chance to setup a PostgreSQL database here.)</p>
+
+<p>Thanks for the help!</p>
+",,,2010-10-29T19:34:03+00:00,1,True
+4055258,166229,postgresql,Compatible boolean data type of various relational databases,"<p>I am trying to create a select statement that is compatible with all major relational databases (MySQL, PostgreSQL, Derby, SQLite, ...).</p>
+
+<p>Here the simple select statement: <code>SELECT * FROM taggings WHERE public IS TRUE</code></p>
+
+<p>The problem is that SQLite for example does not support the boolean data type, so I rewrote my statement to: <code>SELECT * FROM taggings WHERE public = 1</code></p>
+
+<p>As far as I know it is valid for SQLite (wich uses some kind of byte for the public field) and also MySQL (which interprets the 1 as true, cause it uses the boolean type for the public field).</p>
+
+<p>How about PostgreSQL when also uses a boolean public field? From the manual it looks like that I have to write <code>SELECT * FROM taggings WHERE public = '1'</code>. Or is that equivalent in that case to the above statement? (I don't have a chance to setup a PostgreSQL database here.)</p>
+
+<p>Thanks for the help!</p>
+",,,2010-10-29T19:34:03+00:00,1,True
+3408669,175071,sql,sql direct way to get number of rows in table,"<p>Hi again people of stackoverflow.
+I have a routine that has a step that I find unnecessary
+lets say you want to get all the images from a gallery, and limit a certain number of images per page.</p>
+
+<pre><code>$db = PDO object
+$start = (pagenum x images per page)
+$limit = (images per page)
+$itemsdata = $db-&gt;query(""SELECT id,name FROM gallery LIMIT $start,$limit"")-&gt;fetchAll();
+$numitems = $db-&gt;query(""SELECT id FROM gallery"")-&gt;rowCount();
+</code></pre>
+
+<p><code>$imgsdata</code> is a array of all the images in a gallery for example.
+<code>$numimgs</code> is the number of images that the gallery has.</p>
+
+<p>you would need <code>$imgsdata</code> to do a foreach loop on each image in the array, while
+<code>$numimgs</code> is needed to generate the page numbering (e.g. &lt;&lt; 1 <strong>2</strong> 3 4 >>)</p>
+
+<p>my grudge is with <code>$db-&gt;query(""SELECT id FROM gallery"")-&gt;rowCount();</code>
+It feels completely like some sort of cheat, isn't there a direct way to get the number of rows in a table, something like <code>SELECT gallery.Rows</code>?</p>
+
+<p>p.s. currently I'm using SQLite, but I'd need it for MySQL and PostgreSQL as well.</p>
+",,,2010-08-04T18:36:38+00:00,4,True
+3408669,175071,mysql,sql direct way to get number of rows in table,"<p>Hi again people of stackoverflow.
+I have a routine that has a step that I find unnecessary
+lets say you want to get all the images from a gallery, and limit a certain number of images per page.</p>
+
+<pre><code>$db = PDO object
+$start = (pagenum x images per page)
+$limit = (images per page)
+$itemsdata = $db-&gt;query(""SELECT id,name FROM gallery LIMIT $start,$limit"")-&gt;fetchAll();
+$numitems = $db-&gt;query(""SELECT id FROM gallery"")-&gt;rowCount();
+</code></pre>
+
+<p><code>$imgsdata</code> is a array of all the images in a gallery for example.
+<code>$numimgs</code> is the number of images that the gallery has.</p>
+
+<p>you would need <code>$imgsdata</code> to do a foreach loop on each image in the array, while
+<code>$numimgs</code> is needed to generate the page numbering (e.g. &lt;&lt; 1 <strong>2</strong> 3 4 >>)</p>
+
+<p>my grudge is with <code>$db-&gt;query(""SELECT id FROM gallery"")-&gt;rowCount();</code>
+It feels completely like some sort of cheat, isn't there a direct way to get the number of rows in a table, something like <code>SELECT gallery.Rows</code>?</p>
+
+<p>p.s. currently I'm using SQLite, but I'd need it for MySQL and PostgreSQL as well.</p>
+",,,2010-08-04T18:36:38+00:00,4,True
+3408669,175071,sqlite,sql direct way to get number of rows in table,"<p>Hi again people of stackoverflow.
+I have a routine that has a step that I find unnecessary
+lets say you want to get all the images from a gallery, and limit a certain number of images per page.</p>
+
+<pre><code>$db = PDO object
+$start = (pagenum x images per page)
+$limit = (images per page)
+$itemsdata = $db-&gt;query(""SELECT id,name FROM gallery LIMIT $start,$limit"")-&gt;fetchAll();
+$numitems = $db-&gt;query(""SELECT id FROM gallery"")-&gt;rowCount();
+</code></pre>
+
+<p><code>$imgsdata</code> is a array of all the images in a gallery for example.
+<code>$numimgs</code> is the number of images that the gallery has.</p>
+
+<p>you would need <code>$imgsdata</code> to do a foreach loop on each image in the array, while
+<code>$numimgs</code> is needed to generate the page numbering (e.g. &lt;&lt; 1 <strong>2</strong> 3 4 >>)</p>
+
+<p>my grudge is with <code>$db-&gt;query(""SELECT id FROM gallery"")-&gt;rowCount();</code>
+It feels completely like some sort of cheat, isn't there a direct way to get the number of rows in a table, something like <code>SELECT gallery.Rows</code>?</p>
+
+<p>p.s. currently I'm using SQLite, but I'd need it for MySQL and PostgreSQL as well.</p>
+",,,2010-08-04T18:36:38+00:00,4,True
+3408669,175071,postgresql,sql direct way to get number of rows in table,"<p>Hi again people of stackoverflow.
+I have a routine that has a step that I find unnecessary
+lets say you want to get all the images from a gallery, and limit a certain number of images per page.</p>
+
+<pre><code>$db = PDO object
+$start = (pagenum x images per page)
+$limit = (images per page)
+$itemsdata = $db-&gt;query(""SELECT id,name FROM gallery LIMIT $start,$limit"")-&gt;fetchAll();
+$numitems = $db-&gt;query(""SELECT id FROM gallery"")-&gt;rowCount();
+</code></pre>
+
+<p><code>$imgsdata</code> is a array of all the images in a gallery for example.
+<code>$numimgs</code> is the number of images that the gallery has.</p>
+
+<p>you would need <code>$imgsdata</code> to do a foreach loop on each image in the array, while
+<code>$numimgs</code> is needed to generate the page numbering (e.g. &lt;&lt; 1 <strong>2</strong> 3 4 >>)</p>
+
+<p>my grudge is with <code>$db-&gt;query(""SELECT id FROM gallery"")-&gt;rowCount();</code>
+It feels completely like some sort of cheat, isn't there a direct way to get the number of rows in a table, something like <code>SELECT gallery.Rows</code>?</p>
+
+<p>p.s. currently I'm using SQLite, but I'd need it for MySQL and PostgreSQL as well.</p>
+",,,2010-08-04T18:36:38+00:00,4,True
+2845384,35250,sql,SQL: find entries in 1:n relation that don&#39;t comply with condition spanning multiple rows,"<p>I'm trying to optimize SQL queries in Akonadi and came across the following problem that is apparently not easy to solve with SQL, at least for me:</p>
+
+<p>Assume the following table structure (should work in SQLite, PostgreSQL, MySQL):</p>
+
+<pre><code>CREATE TABLE a (
+  a_id INT PRIMARY KEY
+);
+
+INSERT INTO a (a_id) VALUES (1), (2), (3), (4);
+
+CREATE TABLE b (
+  b_id INT PRIMARY KEY,
+  a_id INT,
+  name VARCHAR(255) NOT NULL
+);
+
+INSERT INTO b (b_id, a_id, name)
+       VALUES (1, 1, 'foo'), (2, 1, 'bar'), (3, 1, 'asdf'),
+              (4, 2, 'foo'), (5, 2, 'bar'), (6, 3, 'foo');
+</code></pre>
+
+<p>Now my problem is to find entries in <code>a</code> that are missing <code>name</code> entries in table <code>b</code>. E.g. I need to make sure each entry in <code>a</code> has at least the <code>name</code> entries <code>""foo""</code> and <code>""bar""</code>  in table <code>b</code>. Hence the query should return something similar to:</p>
+
+<pre><code>a_id = 3 is missing name ""bar""
+a_id = 4 is missing name ""foo"" and ""bar""
+</code></pre>
+
+<p>Since both tables are potentially huge in Akonadi, performance is of utmost importance.</p>
+
+<p>One solution in MySQL would be:</p>
+
+<pre><code>SELECT a.a_id,
+       CONCAT('|', GROUP_CONCAT(name ORDER BY NAME ASC SEPARATOR '|'), '|') as names
+  FROM a
+  LEFT JOIN b USING( a_id )
+  GROUP BY a.a_id
+  HAVING names IS NULL OR names NOT LIKE '%|bar|foo|%';
+</code></pre>
+
+<p>I have yet to measure the performance tomorrow, but severly doubt it's any fast for tens of thousand of entries in <code>a</code> and thrice as many in <code>b</code>. Furthermore we want to support SQLite and PostgreSQL where to my knowledge the <code>GROUP_CONCAT</code> function is not available.</p>
+
+<p>Thanks, good night.</p>
+",,,2010-05-16T20:40:14+00:00,4,True
+2845384,35250,mysql,SQL: find entries in 1:n relation that don&#39;t comply with condition spanning multiple rows,"<p>I'm trying to optimize SQL queries in Akonadi and came across the following problem that is apparently not easy to solve with SQL, at least for me:</p>
+
+<p>Assume the following table structure (should work in SQLite, PostgreSQL, MySQL):</p>
+
+<pre><code>CREATE TABLE a (
+  a_id INT PRIMARY KEY
+);
+
+INSERT INTO a (a_id) VALUES (1), (2), (3), (4);
+
+CREATE TABLE b (
+  b_id INT PRIMARY KEY,
+  a_id INT,
+  name VARCHAR(255) NOT NULL
+);
+
+INSERT INTO b (b_id, a_id, name)
+       VALUES (1, 1, 'foo'), (2, 1, 'bar'), (3, 1, 'asdf'),
+              (4, 2, 'foo'), (5, 2, 'bar'), (6, 3, 'foo');
+</code></pre>
+
+<p>Now my problem is to find entries in <code>a</code> that are missing <code>name</code> entries in table <code>b</code>. E.g. I need to make sure each entry in <code>a</code> has at least the <code>name</code> entries <code>""foo""</code> and <code>""bar""</code>  in table <code>b</code>. Hence the query should return something similar to:</p>
+
+<pre><code>a_id = 3 is missing name ""bar""
+a_id = 4 is missing name ""foo"" and ""bar""
+</code></pre>
+
+<p>Since both tables are potentially huge in Akonadi, performance is of utmost importance.</p>
+
+<p>One solution in MySQL would be:</p>
+
+<pre><code>SELECT a.a_id,
+       CONCAT('|', GROUP_CONCAT(name ORDER BY NAME ASC SEPARATOR '|'), '|') as names
+  FROM a
+  LEFT JOIN b USING( a_id )
+  GROUP BY a.a_id
+  HAVING names IS NULL OR names NOT LIKE '%|bar|foo|%';
+</code></pre>
+
+<p>I have yet to measure the performance tomorrow, but severly doubt it's any fast for tens of thousand of entries in <code>a</code> and thrice as many in <code>b</code>. Furthermore we want to support SQLite and PostgreSQL where to my knowledge the <code>GROUP_CONCAT</code> function is not available.</p>
+
+<p>Thanks, good night.</p>
+",,,2010-05-16T20:40:14+00:00,4,True
+2845384,35250,sqlite,SQL: find entries in 1:n relation that don&#39;t comply with condition spanning multiple rows,"<p>I'm trying to optimize SQL queries in Akonadi and came across the following problem that is apparently not easy to solve with SQL, at least for me:</p>
+
+<p>Assume the following table structure (should work in SQLite, PostgreSQL, MySQL):</p>
+
+<pre><code>CREATE TABLE a (
+  a_id INT PRIMARY KEY
+);
+
+INSERT INTO a (a_id) VALUES (1), (2), (3), (4);
+
+CREATE TABLE b (
+  b_id INT PRIMARY KEY,
+  a_id INT,
+  name VARCHAR(255) NOT NULL
+);
+
+INSERT INTO b (b_id, a_id, name)
+       VALUES (1, 1, 'foo'), (2, 1, 'bar'), (3, 1, 'asdf'),
+              (4, 2, 'foo'), (5, 2, 'bar'), (6, 3, 'foo');
+</code></pre>
+
+<p>Now my problem is to find entries in <code>a</code> that are missing <code>name</code> entries in table <code>b</code>. E.g. I need to make sure each entry in <code>a</code> has at least the <code>name</code> entries <code>""foo""</code> and <code>""bar""</code>  in table <code>b</code>. Hence the query should return something similar to:</p>
+
+<pre><code>a_id = 3 is missing name ""bar""
+a_id = 4 is missing name ""foo"" and ""bar""
+</code></pre>
+
+<p>Since both tables are potentially huge in Akonadi, performance is of utmost importance.</p>
+
+<p>One solution in MySQL would be:</p>
+
+<pre><code>SELECT a.a_id,
+       CONCAT('|', GROUP_CONCAT(name ORDER BY NAME ASC SEPARATOR '|'), '|') as names
+  FROM a
+  LEFT JOIN b USING( a_id )
+  GROUP BY a.a_id
+  HAVING names IS NULL OR names NOT LIKE '%|bar|foo|%';
+</code></pre>
+
+<p>I have yet to measure the performance tomorrow, but severly doubt it's any fast for tens of thousand of entries in <code>a</code> and thrice as many in <code>b</code>. Furthermore we want to support SQLite and PostgreSQL where to my knowledge the <code>GROUP_CONCAT</code> function is not available.</p>
+
+<p>Thanks, good night.</p>
+",,,2010-05-16T20:40:14+00:00,4,True
+2845384,35250,postgresql,SQL: find entries in 1:n relation that don&#39;t comply with condition spanning multiple rows,"<p>I'm trying to optimize SQL queries in Akonadi and came across the following problem that is apparently not easy to solve with SQL, at least for me:</p>
+
+<p>Assume the following table structure (should work in SQLite, PostgreSQL, MySQL):</p>
+
+<pre><code>CREATE TABLE a (
+  a_id INT PRIMARY KEY
+);
+
+INSERT INTO a (a_id) VALUES (1), (2), (3), (4);
+
+CREATE TABLE b (
+  b_id INT PRIMARY KEY,
+  a_id INT,
+  name VARCHAR(255) NOT NULL
+);
+
+INSERT INTO b (b_id, a_id, name)
+       VALUES (1, 1, 'foo'), (2, 1, 'bar'), (3, 1, 'asdf'),
+              (4, 2, 'foo'), (5, 2, 'bar'), (6, 3, 'foo');
+</code></pre>
+
+<p>Now my problem is to find entries in <code>a</code> that are missing <code>name</code> entries in table <code>b</code>. E.g. I need to make sure each entry in <code>a</code> has at least the <code>name</code> entries <code>""foo""</code> and <code>""bar""</code>  in table <code>b</code>. Hence the query should return something similar to:</p>
+
+<pre><code>a_id = 3 is missing name ""bar""
+a_id = 4 is missing name ""foo"" and ""bar""
+</code></pre>
+
+<p>Since both tables are potentially huge in Akonadi, performance is of utmost importance.</p>
+
+<p>One solution in MySQL would be:</p>
+
+<pre><code>SELECT a.a_id,
+       CONCAT('|', GROUP_CONCAT(name ORDER BY NAME ASC SEPARATOR '|'), '|') as names
+  FROM a
+  LEFT JOIN b USING( a_id )
+  GROUP BY a.a_id
+  HAVING names IS NULL OR names NOT LIKE '%|bar|foo|%';
+</code></pre>
+
+<p>I have yet to measure the performance tomorrow, but severly doubt it's any fast for tens of thousand of entries in <code>a</code> and thrice as many in <code>b</code>. Furthermore we want to support SQLite and PostgreSQL where to my knowledge the <code>GROUP_CONCAT</code> function is not available.</p>
+
+<p>Thanks, good night.</p>
+",,,2010-05-16T20:40:14+00:00,4,True
+2250462,243782,sql,Should I run VACUUM in transaction or after?,"<p>I have a mobile application sync process. The transaction does a lot of modification on the database. Since this is done on mobile I need to issue a VACUUM to compact the database.</p>
+
+<p>I am wondering when should I issue a VACUUM </p>
+
+<ul>
+<li>in the transaction, as final statement</li>
+<li>or after the transaction?</li>
+</ul>
+
+<p>I am currently looking for SQLite, but if it's different for other engines, let me know in the answers (PostgreSQL, MySQL, Oracle, SQLServer)</p>
+",,,2010-02-12T08:32:26+00:00,4,True
+2250462,243782,mysql,Should I run VACUUM in transaction or after?,"<p>I have a mobile application sync process. The transaction does a lot of modification on the database. Since this is done on mobile I need to issue a VACUUM to compact the database.</p>
+
+<p>I am wondering when should I issue a VACUUM </p>
+
+<ul>
+<li>in the transaction, as final statement</li>
+<li>or after the transaction?</li>
+</ul>
+
+<p>I am currently looking for SQLite, but if it's different for other engines, let me know in the answers (PostgreSQL, MySQL, Oracle, SQLServer)</p>
+",,,2010-02-12T08:32:26+00:00,4,True
+2250462,243782,sqlite,Should I run VACUUM in transaction or after?,"<p>I have a mobile application sync process. The transaction does a lot of modification on the database. Since this is done on mobile I need to issue a VACUUM to compact the database.</p>
+
+<p>I am wondering when should I issue a VACUUM </p>
+
+<ul>
+<li>in the transaction, as final statement</li>
+<li>or after the transaction?</li>
+</ul>
+
+<p>I am currently looking for SQLite, but if it's different for other engines, let me know in the answers (PostgreSQL, MySQL, Oracle, SQLServer)</p>
+",,,2010-02-12T08:32:26+00:00,4,True
+2250462,243782,postgresql,Should I run VACUUM in transaction or after?,"<p>I have a mobile application sync process. The transaction does a lot of modification on the database. Since this is done on mobile I need to issue a VACUUM to compact the database.</p>
+
+<p>I am wondering when should I issue a VACUUM </p>
+
+<ul>
+<li>in the transaction, as final statement</li>
+<li>or after the transaction?</li>
+</ul>
+
+<p>I am currently looking for SQLite, but if it's different for other engines, let me know in the answers (PostgreSQL, MySQL, Oracle, SQLServer)</p>
+",,,2010-02-12T08:32:26+00:00,4,True
+1655705,200266,sql,"SQL scheme conversion script for MySQL, PostgreSQL, SQLite&#160;…","<p>I’m looking for a script that allows me to define my database relations in a simple model file and have the possibility to convert this scheme definition to the explicit formats for MySQL, PostgreSQL and SQLite.
+The format could be similar to the definitions you would do in activerecord, so if all fails, I will somehow go with AR if I can manage it. But maybe there is an even better solution for the problem.</p>
+
+<p>The main issue so far is with the autoincrement fields. I don’t do any overly complicated stuff in my db scheme.</p>
+",,,2009-10-31T21:42:09+00:00,3,True
+1655705,200266,mysql,"SQL scheme conversion script for MySQL, PostgreSQL, SQLite&#160;…","<p>I’m looking for a script that allows me to define my database relations in a simple model file and have the possibility to convert this scheme definition to the explicit formats for MySQL, PostgreSQL and SQLite.
+The format could be similar to the definitions you would do in activerecord, so if all fails, I will somehow go with AR if I can manage it. But maybe there is an even better solution for the problem.</p>
+
+<p>The main issue so far is with the autoincrement fields. I don’t do any overly complicated stuff in my db scheme.</p>
+",,,2009-10-31T21:42:09+00:00,3,True
+1655705,200266,sqlite,"SQL scheme conversion script for MySQL, PostgreSQL, SQLite&#160;…","<p>I’m looking for a script that allows me to define my database relations in a simple model file and have the possibility to convert this scheme definition to the explicit formats for MySQL, PostgreSQL and SQLite.
+The format could be similar to the definitions you would do in activerecord, so if all fails, I will somehow go with AR if I can manage it. But maybe there is an even better solution for the problem.</p>
+
+<p>The main issue so far is with the autoincrement fields. I don’t do any overly complicated stuff in my db scheme.</p>
+",,,2009-10-31T21:42:09+00:00,3,True
+1655705,200266,postgresql,"SQL scheme conversion script for MySQL, PostgreSQL, SQLite&#160;…","<p>I’m looking for a script that allows me to define my database relations in a simple model file and have the possibility to convert this scheme definition to the explicit formats for MySQL, PostgreSQL and SQLite.
+The format could be similar to the definitions you would do in activerecord, so if all fails, I will somehow go with AR if I can manage it. But maybe there is an even better solution for the problem.</p>
+
+<p>The main issue so far is with the autoincrement fields. I don’t do any overly complicated stuff in my db scheme.</p>
+",,,2009-10-31T21:42:09+00:00,3,True
+690632,60868,mysql,How do I UPDATE a row in a table or INSERT it if it doesn&#39;t exist?,"<p>I have the following table of counters:</p>
+
+<pre><code>CREATE TABLE cache (
+    key text PRIMARY KEY,
+    generation int
+);
+</code></pre>
+
+<p>I would like to increment one of the counters, or set it to zero if the corresponding row doesn't exist yet. Is there a way to do this without concurrency issues in standard SQL? The operation is sometimes part of a transaction, sometimes separate.</p>
+
+<p>The SQL must run unmodified on SQLite, PostgreSQL and MySQL, if possible.</p>
+
+<p>A search yielded several ideas which either suffer from concurrency issues, or are specific to a database:</p>
+
+<ul>
+<li><p>Try to <code>INSERT</code> a new row, and <code>UPDATE</code> if there was an error. Unfortunately, the error on <code>INSERT</code> aborts the current transaction.</p></li>
+<li><p><code>UPDATE</code> the row, and if no rows were modified, <code>INSERT</code> a new row.</p></li>
+<li><p>MySQL has an <code>ON DUPLICATE KEY UPDATE</code> clause.</p></li>
+</ul>
+
+<p>EDIT: Thanks for all the great replies. It looks like Paul is right, and there's not a single, portable way of doing this. That's quite surprising to me, as it sounds like a very basic operation.</p>
+",,,2009-03-27T17:07:57+00:00,10,True
+690632,60868,sql,How do I UPDATE a row in a table or INSERT it if it doesn&#39;t exist?,"<p>I have the following table of counters:</p>
+
+<pre><code>CREATE TABLE cache (
+    key text PRIMARY KEY,
+    generation int
+);
+</code></pre>
+
+<p>I would like to increment one of the counters, or set it to zero if the corresponding row doesn't exist yet. Is there a way to do this without concurrency issues in standard SQL? The operation is sometimes part of a transaction, sometimes separate.</p>
+
+<p>The SQL must run unmodified on SQLite, PostgreSQL and MySQL, if possible.</p>
+
+<p>A search yielded several ideas which either suffer from concurrency issues, or are specific to a database:</p>
+
+<ul>
+<li><p>Try to <code>INSERT</code> a new row, and <code>UPDATE</code> if there was an error. Unfortunately, the error on <code>INSERT</code> aborts the current transaction.</p></li>
+<li><p><code>UPDATE</code> the row, and if no rows were modified, <code>INSERT</code> a new row.</p></li>
+<li><p>MySQL has an <code>ON DUPLICATE KEY UPDATE</code> clause.</p></li>
+</ul>
+
+<p>EDIT: Thanks for all the great replies. It looks like Paul is right, and there's not a single, portable way of doing this. That's quite surprising to me, as it sounds like a very basic operation.</p>
+",,,2009-03-27T17:07:57+00:00,10,True
+690632,60868,sqlite,How do I UPDATE a row in a table or INSERT it if it doesn&#39;t exist?,"<p>I have the following table of counters:</p>
+
+<pre><code>CREATE TABLE cache (
+    key text PRIMARY KEY,
+    generation int
+);
+</code></pre>
+
+<p>I would like to increment one of the counters, or set it to zero if the corresponding row doesn't exist yet. Is there a way to do this without concurrency issues in standard SQL? The operation is sometimes part of a transaction, sometimes separate.</p>
+
+<p>The SQL must run unmodified on SQLite, PostgreSQL and MySQL, if possible.</p>
+
+<p>A search yielded several ideas which either suffer from concurrency issues, or are specific to a database:</p>
+
+<ul>
+<li><p>Try to <code>INSERT</code> a new row, and <code>UPDATE</code> if there was an error. Unfortunately, the error on <code>INSERT</code> aborts the current transaction.</p></li>
+<li><p><code>UPDATE</code> the row, and if no rows were modified, <code>INSERT</code> a new row.</p></li>
+<li><p>MySQL has an <code>ON DUPLICATE KEY UPDATE</code> clause.</p></li>
+</ul>
+
+<p>EDIT: Thanks for all the great replies. It looks like Paul is right, and there's not a single, portable way of doing this. That's quite surprising to me, as it sounds like a very basic operation.</p>
+",,,2009-03-27T17:07:57+00:00,10,True
+690632,60868,postgresql,How do I UPDATE a row in a table or INSERT it if it doesn&#39;t exist?,"<p>I have the following table of counters:</p>
+
+<pre><code>CREATE TABLE cache (
+    key text PRIMARY KEY,
+    generation int
+);
+</code></pre>
+
+<p>I would like to increment one of the counters, or set it to zero if the corresponding row doesn't exist yet. Is there a way to do this without concurrency issues in standard SQL? The operation is sometimes part of a transaction, sometimes separate.</p>
+
+<p>The SQL must run unmodified on SQLite, PostgreSQL and MySQL, if possible.</p>
+
+<p>A search yielded several ideas which either suffer from concurrency issues, or are specific to a database:</p>
+
+<ul>
+<li><p>Try to <code>INSERT</code> a new row, and <code>UPDATE</code> if there was an error. Unfortunately, the error on <code>INSERT</code> aborts the current transaction.</p></li>
+<li><p><code>UPDATE</code> the row, and if no rows were modified, <code>INSERT</code> a new row.</p></li>
+<li><p>MySQL has an <code>ON DUPLICATE KEY UPDATE</code> clause.</p></li>
+</ul>
+
+<p>EDIT: Thanks for all the great replies. It looks like Paul is right, and there's not a single, portable way of doing this. That's quite surprising to me, as it sounds like a very basic operation.</p>
+",,,2009-03-27T17:07:57+00:00,10,True
