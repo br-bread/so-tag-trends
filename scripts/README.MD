@@ -59,9 +59,6 @@
 ### Запуск (Windows PowerShell)
 
 ```
-py -m venv .venv
-..venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
 python .\scripts\parse_questions.py
 python .\scripts\parse_users.py
 python .\scripts\build_days.py
