@@ -28,24 +28,26 @@
 
 Колонки:
 - `id` — id вопроса на StackOverflow.
-- `user_id` — id автора (если доступен).
+- `user_id` — id автора.
+- `location` — регион автора.
 - `tag` — тег из набора (sql/postgresql/mysql/sqlite).
 - `title` — заголовок.
 - `body` — текст вопроса.
-- `upvotes` — апвоуты (может быть пустым, если поле не получено из API).
-- `downvotes` — даунвоуты (может быть пустым, если поле не получено из API).
-- `created_at` — дата/время создания (ISO).
+- `score` — итоговый рейтинг (апвоуты минус даунвоуты).
+- `up_vote_count` — количество апвоутов.
+- `down_vote_count` — количество даунвоутов.
+- `created_at` — дата/время создания.
 - `answers_count` — количество ответов.
-- `is_answered` — признак, что есть ответ/вопрос отвечен.
+- `view_count` — количество просмотров.
+- `is_answered` — дан ли ответ на вопрос.
 
 #### `csv/users.csv`
 Одна строка — один пользователь, который встретился в `questions.csv`.
 
 Колонки:
 - `id` — user_id.
-- `rating` — рейтинг/репутация.
-- `region` — сейчас не заполняется.
-- `tz` — сейчас не заполняется (0).
+- `rating` — репутация пользователя.
+- `location` — регион автора.
 
 #### `csv/days.csv`
 Агрегация по дням и тегам (строится из `questions.csv`).
@@ -56,11 +58,25 @@
 - `tag` — тег.
 - `question_count` — количество вопросов/строк за день для тега.
 
+### `csv/score.cvs`
+Агрегация по количеству комментариев (строится из `questions.csv`).
+
+Колонки:
+- `id` — id вопроса на StackOverflow.
+- `score` — итоговый рейтинг (апвоуты минус даунвоуты).
+- `up_vote_count` — количество апвоутов.
+- `down_vote_count` — количество даунвоутов.
+- `created_at` — дата/время создания.
+- `answers_count` — количество ответов.
+- `view_count` — количество просмотров.
+- `is_answered` — дан ли ответ на вопрос.
+
 ### Запуск (Windows PowerShell)
 
 ```
 python .\scripts\parse_questions.py
 python .\scripts\parse_users.py
+python .\scripts\parse_score.py
 python .\scripts\build_days.py
 ```
 
@@ -78,6 +94,8 @@ python .\scripts\build_days.py
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+
+py -m pip install beautifulsoup4
 ```
 
 > Если PowerShell блокирует активацию, можно временно разрешить скрипты:

@@ -23,12 +23,12 @@ def read_user_ids(questions_csv="questions.csv"):
     return sorted(ids, key=int)
 
 def fetch_users_batch(ids):
-    url = f"{API}/" + ";".join(ids)   # важно: ';' [web:205]
+    url = f"{API}/" + ";".join(ids) 
     params = {"site": "stackoverflow"}
     r = requests.get(url, params=params, timeout=30)
 
     if r.status_code == 400:
-        raise RuntimeError(f"400 Bad Request: {r.text}")  # детали ошибки [web:191]
+        raise RuntimeError(f"400 Bad Request: {r.text}")
 
     r.raise_for_status()
     return r.json().get("items", [])
@@ -38,7 +38,7 @@ def main(batch_size: int = 40, sleep_s: float = 0.3):
     user_ids = read_user_ids()
 
     with (OUT_DIR / "users.csv").open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["id", "rating", "region", "tz"])
+        w = csv.DictWriter(f, fieldnames=["id", "rating", "location"])
         w.writeheader()
 
         for batch in chunks(user_ids, batch_size):
@@ -47,8 +47,7 @@ def main(batch_size: int = 40, sleep_s: float = 0.3):
                 w.writerow({
                     "id": u.get("user_id"),
                     "rating": u.get("reputation"),
-                    "region": None,
-                    "tz": 0,
+                    "location": u.get("location"),
                 })
             time.sleep(sleep_s)
 

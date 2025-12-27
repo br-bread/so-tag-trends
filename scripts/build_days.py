@@ -6,11 +6,10 @@ OUT_DIR = Path("csv")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def to_date(created_at: str) -> str:
-    # created_at в ISO, берём YYYY-MM-DD
     return created_at[:10]
 
 def main():
-    counts = {}  # (date, tag) -> count
+    counts = {}
 
     with (OUT_DIR / "questions.csv").open(newline="", encoding="utf-8") as f:
         r = csv.DictReader(f)
