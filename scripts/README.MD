@@ -58,25 +58,11 @@
 - `tag` — тег.
 - `question_count` — количество вопросов/строк за день для тега.
 
-### `csv/score.cvs`
-Агрегация по количеству комментариев (строится из `questions.csv`).
-
-Колонки:
-- `id` — id вопроса на StackOverflow.
-- `score` — итоговый рейтинг (апвоуты минус даунвоуты).
-- `up_vote_count` — количество апвоутов.
-- `down_vote_count` — количество даунвоутов.
-- `created_at` — дата/время создания.
-- `answers_count` — количество ответов.
-- `view_count` — количество просмотров.
-- `is_answered` — дан ли ответ на вопрос.
-
 ### Запуск (Windows PowerShell)
 
 ```
 python .\scripts\parse_questions.py
 python .\scripts\parse_users.py
-python .\scripts\parse_score.py
 python .\scripts\build_days.py
 ```
 
